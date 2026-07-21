@@ -6,6 +6,18 @@
       "runtimeExecutable": "/usr/bin/python3",
       "runtimeArgs": ["-m", "http.server", "5555"],
       "port": 5555
+    },
+    {
+      "name": "time-traveler",
+      "runtimeExecutable": "/usr/bin/python3",
+      "runtimeArgs": ["/Users/alex/Desktop/classroom games/.claude/serve.py", "5560", "/Users/alex/Desktop/classroom games"],
+      "port": 5560
+    },
+    {
+      "name": "word-quest",
+      "runtimeExecutable": "/usr/bin/python3",
+      "runtimeArgs": ["/Users/alex/Desktop/classroom games/.claude/serve.py", "5570", "/Users/alex/Desktop/classroom games"],
+      "port": 5570
     }
   ]
 }

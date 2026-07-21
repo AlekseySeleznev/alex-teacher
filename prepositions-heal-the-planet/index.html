@@ -822,32 +822,41 @@ function dismissWin() {
     next to     — side by side (handled in getPositions)
     between     — obj between two identical refs
 */
+/*
+  Floor line is at 58% of scene height (matches CSS ::after).
+  Reference items are 110px emoji; centering them at top ~50% puts their
+  bottom edge right on the floor — they look grounded.
+  Object positions are then relative to that grounded reference.
+*/
 const POSITIONS = {
   'on': {
-    obj: [50, 29],  ref: [50, 57],
+    // obj floats just above the ref, touching its top surface
+    obj: [50, 38],  ref: [50, 54],
     objZ: 3, refZ: 2,
   },
   'under': {
-    obj: [50, 76],  ref: [50, 41],
+    // ref grounded on floor; obj sits on the ground beneath it
+    obj: [50, 72],  ref: [50, 50],
     objZ: 3, refZ: 2,
   },
   'behind': {
-    // ref draws OVER obj → obj looks hidden behind the box
-    obj: [50, 44],  ref: [50, 53],
+    // ref grounded; obj small and hidden behind ref (ref draws over it)
+    obj: [50, 46],  ref: [50, 52],
     objZ: 1, refZ: 6,
-    objSize: '68px',   // smaller = farther away / depth cue
+    objSize: '52px',
   },
   'in front of': {
-    // obj draws OVER ref AND is larger — bigger = closer, a natural depth cue
-    obj: [50, 61],  ref: [50, 44],
+    // ref grounded; obj large and overlapping the front of ref (obj draws over it)
+    obj: [50, 60],  ref: [50, 48],
     objZ: 6, refZ: 2,
-    objSize: '118px',
+    objSize: '132px',
   },
   'next to': null,   // handled in getPositions()
   'between': {
-    obj:  [50, 50],
-    ref:  [22, 50],
-    ref2: [78, 50],
+    // all three grounded at the same height
+    obj:  [50, 52],
+    ref:  [20, 52],
+    ref2: [80, 52],
     objZ: 3, refZ: 2,
   },
 };

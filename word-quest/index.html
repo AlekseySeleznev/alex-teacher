@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Word Quest - Food</title>
+
+  <!-- Tailwind (CDN, JIT) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React + ReactDOM (CDN, UMD builds) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel standalone: lets us write JSX directly in the browser, no build step -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    html, body { height: 100%; overscroll-behavior: none; }
+    body { -webkit-tap-highlight-color: transparent; }
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+    .pop { animation: pop 0.25s ease-in-out; }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    .shake { animation: shake 0.3s ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-100">
+  <div id="root"></div>
+
+  <script src="js/data.js"></script>
+  <script>
+    // Fetch + transpile app.js ourselves: Babel standalone's auto script-tag
+    // transform defaults to the "automatic" JSX runtime (which needs ES
+    // imports), but we're using plain global React/ReactDOM script tags, so
+    // we force the "classic" runtime (React.createElement) instead.
+    fetch("js/app.js")
+      .then((r) => r.text())
+      .then((src) => {
+        const { code } = Babel.transform(src, {
+          presets: [["react", { runtime: "classic" }]],
+        });
+        (0, eval)(code);
+      });
+  </script>
+</body>
+</html>

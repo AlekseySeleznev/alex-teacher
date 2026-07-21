@@ -13,7 +13,20 @@ const dictationData = {
             "hot", "cold", "hungry", "thirsty", "happy", 
             "sad", "tired", "angry", "scared", "brave", "nervous"
         ]
+    },
+    "3": {
+        title: "Unit 3. I can ride a bike",
+        words: [
+            "ride a bike", "ride a horse", "skate", "skateboard", "play tennis", 
+            "play football", "behind", "in front of", "next to", "between"
+        ]
+    },
+    "4": {
+        title: "Unit 4. Have you got a milkshake?",
+        words: [
+            "salad", "fries", "pizza", "milkshake", "cheese sandwich", 
+            "chicken", "twenty", "thirty", "forty", "fifty", 
+            "sixty", "seventy", "eighty", "ninety"
+        ]
     }
-    // To add Unit 3, simply add a comma above and declare:
-    // "3": { title: "Unit 3. ...", words: [...] }
 };
