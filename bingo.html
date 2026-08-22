@@ -156,35 +156,6 @@ html, body {
 }
 #custom-words-area:focus { outline: none; border-color: var(--accent3); }
 
-/* Toggles */
-.toggle-row { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
-.toggle-row label { font-size: 0.95rem; cursor: pointer; flex: 1; }
-.toggle {
-  position: relative;
-  width: 50px;
-  height: 28px;
-  flex-shrink: 0;
-}
-.toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-slider {
-  position: absolute; inset: 0;
-  background: #333;
-  border-radius: 28px;
-  cursor: pointer;
-  transition: .3s;
-}
-.toggle-slider::before {
-  content: '';
-  position: absolute;
-  width: 22px; height: 22px;
-  left: 3px; top: 3px;
-  background: white;
-  border-radius: 50%;
-  transition: .3s;
-}
-.toggle input:checked + .toggle-slider { background: var(--accent3); }
-.toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
-
 /* Action buttons */
 .action-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 650px; }
 .btn-primary {
@@ -488,33 +459,6 @@ html, body {
   font-weight: 600;
 }
 
-/* BINGO! overlay */
-#bingo-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.7);
-  z-index: 100;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 20px;
-}
-#bingo-overlay.show { display: flex; }
-.bingo-text {
-  font-size: clamp(5rem, 15vw, 12rem);
-  font-weight: 900;
-  animation: bingoPop .5s ease-out;
-  background: linear-gradient(90deg, #f5a623, #e94560, #60a5fa, #4ade80);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-@keyframes bingoPop {
-  from { opacity: 0; transform: scale(0.3) rotate(-10deg); }
-  to   { opacity: 1; transform: scale(1) rotate(0); }
-}
-
 /* ===================== HELPERS ===================== */
 .divider {
   width: 100%;
@@ -525,13 +469,6 @@ html, body {
 
 .settings-section { margin-bottom: 20px; }
 .settings-section:last-child { margin-bottom: 0; }
-
-.voice-warning {
-  font-size: 0.8rem;
-  color: var(--accent1);
-  margin-top: 4px;
-  display: none;
-}
 
 /* ===================== RESPONSIVE ===================== */
 @media (max-width: 700px) {
@@ -568,12 +505,12 @@ html, body {
     <div class="settings-section">
       <h2>Time per word (writing phase)</h2>
       <div class="timer-presets">
-        <button class="preset-btn" onclick="setTimer(20)">Grades 1–2 · 20 sec</button>
-        <button class="preset-btn selected" onclick="setTimer(15)">Grade 3 · 15 sec</button>
-        <button class="preset-btn" onclick="setTimer(12)">Grades 4–5 · 12 sec</button>
+        <button class="preset-btn" onclick="setTimer(35)">Grades 1–2 · 35 sec</button>
+        <button class="preset-btn selected" onclick="setTimer(25)">Grade 3 · 25 sec</button>
+        <button class="preset-btn" onclick="setTimer(20)">Grades 4–5 · 20 sec</button>
       </div>
       <div class="timer-input-row">
-        <input type="number" id="timer-seconds" value="15" min="5" max="120" onchange="onTimerInput()">
+        <input type="number" id="timer-seconds" value="25" min="5" max="120" onchange="onTimerInput()">
         <label>seconds per word</label>
       </div>
     </div>
@@ -584,21 +521,6 @@ html, body {
       <h2>Word set</h2>
       <div class="word-set-list" id="word-set-list"></div>
       <textarea id="custom-words-area" placeholder="Enter words one per line, e.g.:&#10;cat 🐱&#10;dog 🐶&#10;fish 🐟&#10;&#10;You need at least 24 words (or 16 for 4×4 mode)."></textarea>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="settings-section">
-      <h2>Options</h2>
-      <div class="toggle-row">
-        <label for="tog-speech">🔊 Read words aloud (speech synthesis)</label>
-        <label class="toggle"><input type="checkbox" id="tog-speech" checked><span class="toggle-slider"></span></label>
-      </div>
-      <div id="voice-warning" class="voice-warning">⚠️ No English voice found on this device — speech disabled</div>
-      <div class="toggle-row">
-        <label for="tog-ding">🔔 Ding sound between words</label>
-        <label class="toggle"><input type="checkbox" id="tog-ding" checked><span class="toggle-slider"></span></label>
-      </div>
     </div>
   </div>
 
@@ -635,7 +557,7 @@ html, body {
   </div>
 
   <div class="timer-area">
-    <div id="ph1-countdown" class="timer-countdown">15</div>
+    <div id="ph1-countdown" class="timer-countdown">25</div>
     <div class="timer-bar-bg">
       <div id="ph1-bar" class="timer-bar-fill" style="width:100%"></div>
     </div>
@@ -678,16 +600,9 @@ html, body {
   </div>
 </div>
 
-<!-- ==================== BINGO OVERLAY ==================== -->
-<div id="bingo-overlay">
-  <div class="bingo-text">🎉 BINGO! 🎉</div>
-  <button class="btn-primary" onclick="document.getElementById('bingo-overlay').classList.remove('show')">✓ Check the card</button>
-</div>
-
 <script>
 /* ======================================================
    DATA — WORD SETS
-   Each word set has 24 words: { word, emoji }
    ====================================================== */
 const WORD_SETS = [
   {
@@ -715,12 +630,12 @@ const WORD_SETS = [
   {
     name: "Body & Face 🧍",
     words: [
-      {word:"head",emoji:"🙂"},{word:"hair",emoji:"💇"},{word:"eye",emoji:"👁️"},{word:"ear",emoji:"👂"},
+      {word:"head",emoji:"👤"},{word:"hair",emoji:"💇"},{word:"eye",emoji:"👁️"},{word:"ear",emoji:"👂"},
       {word:"nose",emoji:"👃"},{word:"mouth",emoji:"👄"},{word:"tooth",emoji:"🦷"},{word:"tongue",emoji:"👅"},
       {word:"hand",emoji:"✋"},{word:"finger",emoji:"☝️"},{word:"arm",emoji:"💪"},{word:"leg",emoji:"🦵"},
-      {word:"foot",emoji:"🦶"},{word:"knee",emoji:"🩻"},{word:"face",emoji:"😀"},{word:"neck",emoji:"🧣"},
-      {word:"shoulder",emoji:"🤷"},{word:"back",emoji:"🔙"},{word:"tummy",emoji:"🫃"},{word:"toe",emoji:"🦶"},
-      {word:"lip",emoji:"👄"},{word:"chin",emoji:"😄"},{word:"cheek",emoji:"😊"},{word:"brain",emoji:"🧠"}
+      {word:"foot",emoji:"🦶"},{word:"knee",emoji:"🦵"},{word:"face",emoji:"😊"},{word:"neck",emoji:"🧣"},
+      {word:"shoulder",emoji:"💪"},{word:"back",emoji:"🔙"},{word:"tummy",emoji:"🫃"},{word:"toe",emoji:"🦶"},
+      {word:"lip",emoji:"👄"},{word:"chin",emoji:"👴"},{word:"cheek",emoji:"😊"},{word:"brain",emoji:"🧠"}
     ]
   },
   {
@@ -739,8 +654,8 @@ const WORD_SETS = [
     words: [
       {word:"pen",emoji:"🖊️"},{word:"pencil",emoji:"✏️"},{word:"book",emoji:"📖"},{word:"bag",emoji:"🎒"},
       {word:"ruler",emoji:"📏"},{word:"eraser",emoji:"🧽"},{word:"crayon",emoji:"🖍️"},{word:"scissors",emoji:"✂️"},
-      {word:"glue",emoji:"🩹"},{word:"desk",emoji:"🪑"},{word:"chair",emoji:"🪑"},{word:"board",emoji:"📋"},
-      {word:"chalk",emoji:"🖍️"},{word:"marker",emoji:"🖊️"},{word:"paper",emoji:"📄"},{word:"notebook",emoji:"📓"},
+      {word:"glue",emoji:"🧴"},{word:"desk",emoji:"📊"},{word:"chair",emoji:"🪑"},{word:"board",emoji:"📋"},
+      {word:"chalk",emoji:"🖍️"},{word:"marker",emoji:"🖌️"},{word:"paper",emoji:"📄"},{word:"notebook",emoji:"📓"},
       {word:"bell",emoji:"🔔"},{word:"clock",emoji:"🕐"},{word:"map",emoji:"🗺️"},{word:"globe",emoji:"🌍"},
       {word:"computer",emoji:"💻"},{word:"teacher",emoji:"👩‍🏫"},{word:"student",emoji:"🧑‍🎓"},{word:"classroom",emoji:"🏫"}
     ]
@@ -750,9 +665,9 @@ const WORD_SETS = [
     words: [
       {word:"mother",emoji:"👩"},{word:"father",emoji:"👨"},{word:"sister",emoji:"👧"},{word:"brother",emoji:"👦"},
       {word:"baby",emoji:"👶"},{word:"grandmother",emoji:"👵"},{word:"grandfather",emoji:"👴"},{word:"aunt",emoji:"👩"},
-      {word:"uncle",emoji:"👨"},{word:"cousin",emoji:"🧒"},{word:"son",emoji:"👦"},{word:"daughter",emoji:"👧"},
-      {word:"family",emoji:"👪"},{word:"parents",emoji:"👫"},{word:"husband",emoji:"🤵"},{word:"wife",emoji:"👰"},
-      {word:"twins",emoji:"👯"},{word:"friend",emoji:"🧑‍🤝‍🧑"},{word:"boy",emoji:"👦"},{word:"girl",emoji:"👧"},
+      {word:"uncle",emoji:"👨"},{word:"cousin",emoji:"👧"},{word:"son",emoji:"👦"},{word:"daughter",emoji:"👧"},
+      {word:"family",emoji:"👪"},{word:"parents",emoji:"👨‍👩"},{word:"husband",emoji:"👨"},{word:"wife",emoji:"👩"},
+      {word:"twins",emoji:"👯"},{word:"friend",emoji:"👫"},{word:"boy",emoji:"👦"},{word:"girl",emoji:"👧"},
       {word:"man",emoji:"👨"},{word:"woman",emoji:"👩"},{word:"people",emoji:"👥"},{word:"child",emoji:"🧒"}
     ]
   },
@@ -763,18 +678,18 @@ const WORD_SETS = [
       {word:"pants",emoji:"👖"},{word:"jeans",emoji:"👖"},{word:"shorts",emoji:"🩳"},{word:"shoes",emoji:"👟"},
       {word:"socks",emoji:"🧦"},{word:"hat",emoji:"🎩"},{word:"cap",emoji:"🧢"},{word:"jacket",emoji:"🧥"},
       {word:"coat",emoji:"🧥"},{word:"sweater",emoji:"🧶"},{word:"gloves",emoji:"🧤"},{word:"scarf",emoji:"🧣"},
-      {word:"boots",emoji:"👢"},{word:"sandals",emoji:"🩴"},{word:"tie",emoji:"👔"},{word:"belt",emoji:"👔"},
+      {word:"boots",emoji:"👢"},{word:"sandals",emoji:"🩴"},{word:"tie",emoji:"👔"},{word:"belt",emoji:"⌚"},
       {word:"glasses",emoji:"👓"},{word:"bag",emoji:"👜"},{word:"watch",emoji:"⌚"},{word:"umbrella",emoji:"☂️"}
     ]
   },
   {
     name: "Action Verbs 🏃",
     words: [
-      {word:"run",emoji:"🏃"},{word:"jump",emoji:"🦘"},{word:"walk",emoji:"🚶"},{word:"swim",emoji:"🏊"},
+      {word:"run",emoji:"🏃"},{word:"jump",emoji:"🤸"},{word:"walk",emoji:"🚶"},{word:"swim",emoji:"🏊"},
       {word:"sit",emoji:"🪑"},{word:"stand",emoji:"🧍"},{word:"sleep",emoji:"😴"},{word:"eat",emoji:"🍽️"},
       {word:"drink",emoji:"🥤"},{word:"read",emoji:"📖"},{word:"write",emoji:"✍️"},{word:"draw",emoji:"🎨"},
       {word:"sing",emoji:"🎤"},{word:"dance",emoji:"💃"},{word:"play",emoji:"⚽"},{word:"climb",emoji:"🧗"},
-      {word:"throw",emoji:"🤾"},{word:"catch",emoji:"🧤"},{word:"kick",emoji:"👟"},{word:"clap",emoji:"👏"},
+      {word:"throw",emoji:"🤾"},{word:"catch",emoji:"🙌"},{word:"kick",emoji:"🦵"},{word:"clap",emoji:"👏"},
       {word:"cry",emoji:"😢"},{word:"laugh",emoji:"😄"},{word:"listen",emoji:"👂"},{word:"look",emoji:"👀"}
     ]
   },
@@ -792,10 +707,10 @@ const WORD_SETS = [
   {
     name: "House 🏠",
     words: [
-      {word:"house",emoji:"🏠"},{word:"door",emoji:"🚪"},{word:"window",emoji:"🪟"},{word:"roof",emoji:"🏚️"},
-      {word:"wall",emoji:"🧱"},{word:"floor",emoji:"🪵"},{word:"table",emoji:"🪑"},{word:"chair",emoji:"🪑"},
+      {word:"house",emoji:"🏠"},{word:"door",emoji:"🚪"},{word:"window",emoji:"🪟"},{word:"roof",emoji:"🏠"},
+      {word:"wall",emoji:"🟫"},{word:"floor",emoji:"🟫"},{word:"table",emoji:"🍽️"},{word:"chair",emoji:"🪑"},
       {word:"bed",emoji:"🛏️"},{word:"sofa",emoji:"🛋️"},{word:"lamp",emoji:"💡"},{word:"clock",emoji:"🕐"},
-      {word:"mirror",emoji:"🪞"},{word:"sink",emoji:"🚿"},{word:"bath",emoji:"🛁"},{word:"shower",emoji:"🚿"},
+      {word:"mirror",emoji:"🪞"},{word:"sink",emoji:"🚰"},{word:"bath",emoji:"🛁"},{word:"shower",emoji:"🚿"},
       {word:"toilet",emoji:"🚽"},{word:"kitchen",emoji:"🍳"},{word:"bedroom",emoji:"🛏️"},{word:"bathroom",emoji:"🚽"},
       {word:"garden",emoji:"🌳"},{word:"key",emoji:"🔑"},{word:"stairs",emoji:"🪜"},{word:"TV",emoji:"📺"}
     ]
@@ -817,26 +732,21 @@ const WORD_SETS = [
    STATE
    ====================================================== */
 let state = {
-  mode: '5x5',          // '4x4' or '5x5'
-  timerSecs: 15,
-  wordSetIndex: 0,      // index in WORD_SETS, or -1 for custom
+  mode: '5x5',
+  timerSecs: 25,
+  wordSetIndex: 0,
   customWords: [],
-  useSpeech: true,
-  useDing: true,
 
-  // game
-  selectedWords: [],    // the words chosen for this game (16 or 24)
-  phase: null,          // 'writing' | 'drawing'
+  selectedWords: [],
+  phase: null,
 
-  // phase 1
   ph1Index: 0,
   ph1Paused: false,
-  ph1Remaining: 0,      // seconds remaining on current word
+  ph1Remaining: 0,
   ph1Timer: null,
 
-  // phase 2
-  ph2Order: [],         // indices into selectedWords, shuffled
-  ph2Step: 0,           // how many have been drawn
+  ph2Order: [],
+  ph2Step: 0,
 };
 
 /* ======================================================
@@ -845,7 +755,6 @@ let state = {
 window.addEventListener('DOMContentLoaded', () => {
   buildWordSetButtons();
   loadSettings();
-  checkVoice();
   document.addEventListener('keydown', onKeyDown);
 });
 
@@ -858,7 +767,6 @@ function buildWordSetButtons() {
     btn.onclick = () => selectWordSet(i);
     container.appendChild(btn);
   });
-  // Custom option
   const customBtn = document.createElement('button');
   customBtn.className = 'ws-btn';
   customBtn.id = 'ws-custom-btn';
@@ -879,14 +787,13 @@ function selectMode(m) {
 function setTimer(s) {
   state.timerSecs = s;
   document.getElementById('timer-seconds').value = s;
-  document.querySelectorAll('.preset-btn').forEach(b => {
-    b.classList.toggle('selected', b.textContent.includes(s + ' sec'));
-  });
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
   saveSettings();
 }
 
 function onTimerInput() {
-  const v = parseInt(document.getElementById('timer-seconds').value) || 15;
+  const v = parseInt(document.getElementById('timer-seconds').value) || 25;
   state.timerSecs = Math.max(5, Math.min(120, v));
   document.getElementById('timer-seconds').value = state.timerSecs;
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
@@ -904,33 +811,37 @@ function selectWordSet(idx) {
 }
 
 /* ======================================================
-   VOICE CHECK
+   STORAGE
    ====================================================== */
-function checkVoice() {
-  if (!('speechSynthesis' in window)) {
-    document.getElementById('voice-warning').style.display = 'block';
-    state.useSpeech = false;
-    document.getElementById('tog-speech').checked = false;
-    return;
-  }
-  // Voices load asynchronously
-  const check = () => {
-    const voices = speechSynthesis.getVoices();
-    const eng = voices.find(v => v.lang.startsWith('en'));
-    if (!eng && voices.length > 0) {
-      document.getElementById('voice-warning').style.display = 'block';
+function saveSettings() {
+  try {
+    localStorage.setItem('bingo_settings', JSON.stringify({
+      mode: state.mode,
+      timerSecs: state.timerSecs,
+      wordSetIndex: state.wordSetIndex,
+      customWords: document.getElementById('custom-words-area').value
+    }));
+  } catch(e) {}
+}
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('bingo_settings') || '{}');
+    if (s.mode) selectMode(s.mode);
+    if (s.timerSecs) {
+      state.timerSecs = s.timerSecs;
+      document.getElementById('timer-seconds').value = s.timerSecs;
     }
-  };
-  speechSynthesis.onvoiceschanged = check;
-  check();
+    if (s.wordSetIndex !== undefined) selectWordSet(s.wordSetIndex);
+    if (s.customWords) document.getElementById('custom-words-area').value = s.customWords;
+  } catch(e) {}
 }
 
 /* ======================================================
-   SPEECH
+   SPEECH & SOUND
    ====================================================== */
 function speak(text) {
-  const useS = document.getElementById('tog-speech').checked;
-  if (!useS || !('speechSynthesis' in window)) return;
+  if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US';
@@ -942,13 +853,8 @@ function speak(text) {
   speechSynthesis.speak(u);
 }
 
-/* ======================================================
-   DING SOUND (AudioContext)
-   ====================================================== */
 let audioCtx = null;
 function ding() {
-  const useD = document.getElementById('tog-ding').checked;
-  if (!useD) return;
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtx.createOscillator();
@@ -962,34 +868,6 @@ function ding() {
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
     osc.start(audioCtx.currentTime);
     osc.stop(audioCtx.currentTime + 0.4);
-  } catch(e) { /* silent fail */ }
-}
-
-/* ======================================================
-   LOCAL STORAGE
-   ====================================================== */
-function saveSettings() {
-  try {
-    localStorage.setItem('bingo_settings', JSON.stringify({
-      mode: state.mode,
-      timerSecs: state.timerSecs,
-      wordSetIndex: state.wordSetIndex,
-      useSpeech: document.getElementById('tog-speech').checked,
-      useDing: document.getElementById('tog-ding').checked,
-      customWords: document.getElementById('custom-words-area').value
-    }));
-  } catch(e) {}
-}
-
-function loadSettings() {
-  try {
-    const s = JSON.parse(localStorage.getItem('bingo_settings') || '{}');
-    if (s.mode) selectMode(s.mode);
-    if (s.timerSecs) setTimer(s.timerSecs);
-    if (s.wordSetIndex !== undefined) selectWordSet(s.wordSetIndex);
-    if (s.useSpeech !== undefined) document.getElementById('tog-speech').checked = s.useSpeech;
-    if (s.useDing !== undefined) document.getElementById('tog-ding').checked = s.useDing;
-    if (s.customWords) document.getElementById('custom-words-area').value = s.customWords;
   } catch(e) {}
 }
 
@@ -1020,7 +898,6 @@ function showPrint() {
   }
   container.appendChild(grid);
 
-  // Title above grid
   const title = document.createElement('div');
   title.style.cssText = 'font-size:1.5rem;font-weight:900;text-align:center;color:#000;margin-bottom:16px';
   title.textContent = `🎱 English Bingo — ${size}×${size} Grid`;
@@ -1035,7 +912,6 @@ function showPrint() {
 function startGame() {
   saveSettings();
 
-  // Get word list
   let pool;
   if (state.wordSetIndex === -1) {
     pool = parseCustomWords();
@@ -1049,10 +925,7 @@ function startGame() {
     return;
   }
 
-  // Shuffle and pick
   state.selectedWords = shuffle([...pool]).slice(0, needed);
-
-  // Start writing phase
   state.phase = 'writing';
   state.ph1Index = 0;
   state.ph1Paused = false;
@@ -1066,7 +939,6 @@ function parseCustomWords() {
   return text.split('\n').map(line => {
     line = line.trim();
     if (!line) return null;
-    // Extract emoji at start or end
     const emojiMatch = line.match(/(\p{Emoji_Presentation}|\p{Emoji}️)/gu);
     const word = line.replace(/(\p{Emoji_Presentation}|\p{Emoji}️)/gu, '').trim();
     return { word: word || line, emoji: emojiMatch ? emojiMatch[0] : '' };
@@ -1084,11 +956,9 @@ function ph1ShowWord(idx) {
   document.getElementById('ph1-word').textContent = w.word;
   document.getElementById('ph1-progress').textContent = `Word ${idx + 1} of ${total}`;
 
-  // Reset timer
   state.ph1Remaining = state.timerSecs;
   updateTimerDisplay();
 
-  // Speak
   speak(w.word);
 }
 
@@ -1110,7 +980,6 @@ function updateTimerDisplay() {
   const pct = (state.ph1Remaining / state.timerSecs) * 100;
   document.getElementById('ph1-bar').style.width = Math.max(0, pct) + '%';
 
-  // Color warning when low
   const bar = document.getElementById('ph1-bar');
   if (pct < 30) bar.style.background = 'linear-gradient(90deg,#e94560,#f5a623)';
   else bar.style.background = 'linear-gradient(90deg,#4ade80,#f5a623)';
@@ -1124,7 +993,6 @@ function ph1TogglePause() {
 function ph1Next() {
   const next = state.ph1Index + 1;
   if (next >= state.selectedWords.length) {
-    // Move to phase 2
     ph1End();
     return;
   }
@@ -1150,9 +1018,8 @@ function ph1End() {
 function startPhase2() {
   state.phase = 'drawing';
   state.ph2Order = shuffle(state.selectedWords.map((_, i) => i));
-  state.ph2Step = -1; // nothing drawn yet
+  state.ph2Step = -1;
 
-  // Build called grid
   const grid = document.getElementById('called-grid');
   grid.innerHTML = '';
   state.selectedWords.forEach((w, i) => {
@@ -1173,7 +1040,6 @@ function startPhase2() {
 function ph2Next() {
   const nextStep = state.ph2Step + 1;
   if (nextStep >= state.ph2Order.length) {
-    // All words drawn
     document.getElementById('ph2-word').textContent = 'All done! 🎉';
     document.getElementById('ph2-emoji').textContent = '🏆';
     return;
@@ -1185,7 +1051,6 @@ function ph2Next() {
   document.getElementById('ph2-emoji').textContent = w.emoji || '🎲';
   document.getElementById('ph2-word').textContent = w.word;
 
-  // Highlight chip
   document.getElementById(`chip-${wordIdx}`).classList.add('called');
 
   ding();
@@ -1202,7 +1067,6 @@ function updatePh2Remaining() {
 }
 
 function ph2NewGame() {
-  // Reshuffle same words
   startPhase2();
 }
 
@@ -1251,7 +1115,6 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-start') {
-    // Reset game state when going back
     state.phase = null;
     clearInterval(state.ph1Timer);
     if ('speechSynthesis' in window) speechSynthesis.cancel();

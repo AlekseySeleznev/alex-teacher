@@ -28,5 +28,14 @@ const dictationData = {
             "chicken", "twenty", "thirty", "forty", "fifty", 
             "sixty", "seventy", "eighty", "ninety"
         ]
+    },
+    "5": {
+        title: "Unit 5. We've got English",
+        words: [
+            "art", "maths", "English", "science", "PE", 
+            "music", "playground", "sports field", "art room",
+            "computer room", "gym"
+        ]
     }
 };
+

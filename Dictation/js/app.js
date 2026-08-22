@@ -8,7 +8,7 @@ const unitId = urlParams.get('unit') || '1'; // Default to Unit 1 if no paramete
 const currentUnit = dictationData[unitId] || dictationData["1"];
 const wordsList = currentUnit.words;
 const TOTAL_WORDS = wordsList.length;
-const TIME_PER_WORD = 40; 
+const TIME_PER_WORD = 25; 
 
 let currentWordIndex = 0;
 let timerInterval = null;
