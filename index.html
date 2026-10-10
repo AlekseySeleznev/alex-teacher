@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alex Seleznev — English Teacher, Thailand</title>
+<meta name="description" content="E-teaching portfolio of Alex Seleznev, English teacher at Anuban Ayuthaya School, Thailand: classroom games, lesson materials and professional practice.">
+<style>
+  :root {
+    --sky-top: #9fdcf0;
+    --sky-bot: #fff3d6;
+    --grass: #6fc279;
+    --grass-dark: #3f9c5a;
+    --road: #5a6472;
+    --ink: #223244;
+    --muted: #5d6e82;
+    --paper: #fffdf6;
+    --line: #223244;
+    --sun: #ffc83d;
+    --brick: #e9805e;
+    --teal: #3fb6a8;
+    --violet: #8d7ae6;
+    --blue: #5b9bd5;
+    --cream: #f4d9a0;
+    --radius: 16px;
+    --font: ui-rounded, "Avenir Next Rounded", "Nunito", "Trebuchet MS", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    font-family: var(--font); color: var(--ink); line-height: 1.6;
+    background: linear-gradient(180deg, var(--sky-bot) 0, #fffaf0 100%);
+  }
+  a { color: inherit; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---------- top bar + eco meter ---------- */
+  .bar {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(255, 253, 246, .92); backdrop-filter: blur(8px);
+    border-bottom: 3px solid var(--line);
+  }
+  .bar .wrap { display: flex; align-items: center; justify-content: space-between; height: 58px; gap: 12px; }
+  .bar .logo { font-weight: 800; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+  .meter { display: flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 700; }
+  .meter .leaves { display: flex; gap: 3px; }
+  .leaf { font-size: 1.2rem; filter: grayscale(1); opacity: .35; transition: .4s; }
+  .leaf.on { filter: none; opacity: 1; transform: scale(1.15); }
+
+  /* ---------- hero: the city ---------- */
+  .hero { position: relative; overflow: hidden; background: linear-gradient(180deg, var(--sky-top), var(--sky-bot) 85%); padding-top: 48px; }
+  .hero .intro { position: relative; z-index: 2; text-align: center; padding-bottom: 8px; }
+  .hello { display: inline-block; background: var(--paper); border: 3px solid var(--line); border-radius: 99px; padding: 4px 16px; font-weight: 800; font-size: .85rem; letter-spacing: .05em; text-transform: uppercase; box-shadow: 3px 3px 0 var(--line); }
+  .hero h1 { font-size: clamp(2.2rem, 6vw, 3.8rem); line-height: 1.1; margin: 14px 0 10px; text-shadow: 3px 3px 0 #fff; }
+  .hero h1 em { font-style: normal; color: var(--grass-dark); }
+  .hero .lead { max-width: 560px; margin: 0 auto; font-size: 1.1rem; color: #33475c; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px 0 6px; }
+  .chip { background: var(--paper); border: 2px solid var(--line); border-radius: 99px; padding: 3px 13px; font-size: .86rem; font-weight: 700; }
+
+  .sun { position: absolute; right: 8%; top: 36px; width: 84px; height: 84px; border-radius: 50%; background: var(--sun); border: 3px solid var(--line); box-shadow: 0 0 0 14px rgba(255, 200, 61, .25); animation: pulse 4s ease-in-out infinite; }
+  .cloud { position: absolute; background: #fff; border: 3px solid var(--line); border-radius: 99px; height: 34px; width: 110px; opacity: .95; animation: drift linear infinite; }
+  .cloud::before, .cloud::after { content: ""; position: absolute; background: #fff; border: 3px solid var(--line); border-bottom: 0; border-radius: 99px 99px 0 0; }
+  .cloud::before { width: 46px; height: 30px; left: 16px; top: -22px; }
+  .cloud::after { width: 34px; height: 22px; left: 54px; top: -14px; }
+  .cloud.c1 { top: 70px; left: -140px; animation-duration: 60s; }
+  .cloud.c2 { top: 150px; left: -140px; animation-duration: 90s; animation-delay: -35s; transform: scale(.7); }
+  @keyframes drift { to { left: 105%; } }
+  @keyframes pulse { 50% { transform: scale(1.08); } }
+
+  .city { position: relative; z-index: 1; display: block; width: 100%; max-width: 1100px; margin: 0 auto; height: auto; }
+  .city text { font-family: var(--font); font-weight: 800; font-size: 20px; fill: var(--ink); pointer-events: none; }
+  .bld { cursor: pointer; outline: none; }
+  .bld .shape { stroke: var(--line); stroke-width: 3; transition: transform .2s; transform-box: fill-box; transform-origin: bottom; }
+  .bld:hover .shape, .bld:focus-visible .shape { transform: translateY(-5px); }
+  .bld .win-on { opacity: 0; transition: opacity .8s; }
+  .bld.lit .win-on { opacity: 1; }
+  .bld .sign { fill: var(--paper); stroke: var(--line); stroke-width: 2.5; }
+  .tree { opacity: 0; transform: scale(.2); transform-box: fill-box; transform-origin: bottom; transition: .6s cubic-bezier(.3, 1.6, .5, 1); }
+  .tree.grown { opacity: 1; transform: scale(1); }
+  .turbine-blades { transform-box: fill-box; transform-origin: center; animation: spin 6s linear infinite; }
+  .done .turbine-blades { animation-duration: 1.4s; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hint { text-align: center; font-size: .85rem; font-weight: 700; color: #33475c; padding: 6px 0 14px; position: relative; z-index: 2; }
+
+  .ground { height: 26px; background: var(--grass); border-top: 3px solid var(--line); border-bottom: 3px solid var(--line); }
+
+  /* ---------- buildings = sections ---------- */
+  section.building { padding: 54px 0 0; position: relative; }
+  .roof { height: 46px; margin: 0 auto; width: 100%; max-width: 940px; background: var(--c); clip-path: polygon(0 100%, 6% 0, 94% 0, 100% 100%); border: 0; position: relative; }
+  .roof::after { content: attr(data-sign); position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-weight: 800; font-size: .95rem; letter-spacing: .08em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, .25); white-space: nowrap; }
+  .body {
+    max-width: 940px; margin: -3px auto 0; background: var(--paper); border: 3px solid var(--line);
+    border-radius: 0 0 var(--radius) var(--radius); padding: 32px 32px 0; position: relative;
+    box-shadow: 6px 6px 0 var(--line);
+    transform: translateY(24px); opacity: 0; transition: .7s ease;
+  }
+  section.show .body { transform: none; opacity: 1; }
+  .body::before { content: ""; position: absolute; left: -3px; right: -3px; top: -3px; height: 8px; background: var(--c); }
+  .door { width: 54px; height: 70px; margin: 36px auto 0; background: var(--c); border: 3px solid var(--line); border-bottom: 0; border-radius: 30px 30px 0 0; position: relative; }
+  .door::after { content: ""; position: absolute; right: 9px; top: 38px; width: 7px; height: 7px; border-radius: 50%; background: var(--sun); border: 2px solid var(--line); }
+  h2 { font-size: 1.9rem; line-height: 1.2; margin-bottom: 6px; }
+  .sub { color: var(--muted); margin-bottom: 24px; max-width: 620px; }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .card { background: #fff; border: 3px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: 4px 4px 0 var(--line); }
+  .card .ico { font-size: 1.9rem; }
+  .card h3 { font-size: 1.05rem; margin: 4px 0; }
+  .card p { color: var(--muted); font-size: .94rem; }
+  a.card { text-decoration: none; display: block; transition: transform .15s, box-shadow .15s; }
+  a.card:hover { transform: translate(-2px, -3px); box-shadow: 7px 8px 0 var(--line); }
+  .tag { display: inline-block; font-size: .74rem; font-weight: 800; background: color-mix(in srgb, var(--c) 25%, #fff); border: 2px solid var(--line); border-radius: 99px; padding: 1px 10px; margin-top: 10px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; }
+  .stat { text-align: center; background: #fff; border: 3px solid var(--line); border-radius: var(--radius); padding: 14px 8px; }
+  .stat b { display: block; font-size: 2.3rem; line-height: 1.1; color: var(--c); -webkit-text-stroke: 1.5px var(--line); }
+  .stat span { font-size: .85rem; color: var(--muted); font-weight: 700; }
+  .quote { margin-top: 26px; font-size: 1.25rem; font-weight: 800; padding: 14px 18px; border-left: 8px solid var(--sun); background: #fff7d9; border-radius: 0 var(--radius) var(--radius) 0; }
+  .quote small { display: block; font-size: .85rem; font-weight: 600; color: var(--muted); margin-top: 4px; }
+
+  ul.ticks { list-style: none; display: grid; gap: 12px; }
+  ul.ticks li { padding-left: 34px; position: relative; }
+  ul.ticks li::before { content: "🌱"; position: absolute; left: 0; top: -1px; font-size: 1.15rem; }
+
+  .links { display: flex; flex-wrap: wrap; gap: 12px; }
+  .links a, .links span { background: #fff; border: 3px solid var(--line); border-radius: 99px; padding: 8px 20px; font-weight: 800; text-decoration: none; box-shadow: 3px 3px 0 var(--line); }
+  .links a:hover { background: var(--sun); }
+
+  /* ---------- footer ---------- */
+  .finish { text-align: center; padding: 70px 20px 0; }
+  .finish .badge { display: inline-block; max-width: 520px; background: #fff; border: 3px solid var(--line); border-radius: var(--radius); padding: 14px 22px; font-weight: 800; box-shadow: 4px 4px 0 var(--line); }
+  .finish .badge.win { background: var(--sun); animation: pop .6s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes pop { from { transform: scale(.6); } }
+  .verge { margin-top: 36px; height: 56px; background: var(--grass); border-top: 3px solid var(--line); font-size: 1.6rem; letter-spacing: .6em; text-align: center; overflow: hidden; line-height: 1; padding-top: 6px; }
+  footer { background: var(--grass-dark); color: #fff; text-align: center; font-size: .85rem; font-weight: 700; padding: 18px 20px 28px; }
+
+  @media (max-width: 640px) {
+    .body { padding: 24px 18px 0; }
+    .sun { width: 56px; height: 56px; right: 5%; }
+    .meter .txt { display: none; }
+    .roof::after { font-size: .75rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .cloud, .sun, .turbine-blades { animation: none; }
+    .body { transition: none; transform: none; opacity: 1; }
+  }
+</style>
+</head>
+<body id="top">
+
+<div class="bar">
+  <div class="wrap">
+    <a class="logo" href="#top">🌍 Alex Seleznev</a>
+    <div class="meter" aria-live="polite">
+      <span class="txt">Eco-City</span>
+      <span class="leaves" id="leaves"><span class="leaf">🌿</span><span class="leaf">🌿</span><span class="leaf">🌿</span><span class="leaf">🌿</span><span class="leaf">🌿</span></span>
+      <span id="count">0/5</span>
+    </div>
+  </div>
+</div>
+
+<header class="hero" id="hero">
+  <div class="sun"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+
+  <div class="wrap intro">
+    <span class="hello">Hello, I'm</span>
+    <h1>Alex Seleznev,<br><em>English teacher</em> in Thailand</h1>
+    <p class="lead">I teach young learners with games, stories and a bit of magic, so speaking English feels like play, not homework.</p>
+    <div class="chips">
+      <span class="chip">🏫 Anuban Ayuthaya School</span>
+      <span class="chip">🎓 Grade 2</span>
+      <span class="chip">📘 Family and Friends 2</span>
+      <span class="chip">🎮 Game-based learning</span>
+    </div>
+  </div>
+
+  <!-- the city: every building is a section of the page -->
+  <svg class="city" id="city" viewBox="-30 0 1030 330" role="navigation" aria-label="City map: choose a building to visit">
+    <defs>
+      <pattern id="winOff" width="26" height="30" patternUnits="userSpaceOnUse"><rect x="6" y="7" width="13" height="16" rx="2" fill="#aebfd0"/></pattern>
+      <pattern id="winOn" width="26" height="30" patternUnits="userSpaceOnUse"><rect x="6" y="7" width="13" height="16" rx="2" fill="#ffd95a"/></pattern>
+    </defs>
+
+    <!-- road & ground -->
+    <rect x="-30" y="278" width="1030" height="52" fill="var(--road)"/>
+    <rect x="-30" y="274" width="1030" height="8" fill="var(--grass)" stroke="var(--line)" stroke-width="3"/>
+    <g stroke="#fff" stroke-width="5" stroke-dasharray="26 22"><line x1="-30" y1="306" x2="1000" y2="306"/></g>
+
+    <!-- About: Town Hall -->
+    <a class="bld" id="b-about" href="#about" aria-label="Town Hall: About me">
+      <g class="shape">
+        <rect x="60" y="150" width="170" height="124" fill="var(--cream)"/>
+        <polygon points="50,150 145,98 240,150" fill="var(--brick)"/>
+        <rect x="132" y="108" width="26" height="26" rx="13" fill="#fff"/>
+        <rect x="60" y="150" width="170" height="124" fill="url(#winOff)"/>
+        <rect class="win-on" x="60" y="150" width="170" height="124" fill="url(#winOn)"/>
+        <rect x="128" y="226" width="34" height="48" rx="17" fill="var(--brick)"/>
+      </g>
+      <rect class="sign" x="88" y="164" width="114" height="26" rx="8"/>
+      <text x="145" y="183" text-anchor="middle">About</text>
+    </a>
+
+    <!-- Classroom: School -->
+    <a class="bld" id="b-classroom" href="#classroom" aria-label="School: My classroom">
+      <g class="shape">
+        <rect x="270" y="130" width="230" height="144" fill="#f08a68"/>
+        <rect x="360" y="96" width="50" height="40" fill="#f08a68"/>
+        <polygon points="352,96 385,66 418,96" fill="#8a4a38"/>
+        <line x1="385" y1="66" x2="385" y2="36" stroke="var(--line)" stroke-width="3"/>
+        <polygon points="385,36 415,46 385,56" fill="var(--sun)" stroke="var(--line)" stroke-width="2"/>
+        <rect x="270" y="130" width="230" height="144" fill="url(#winOff)"/>
+        <rect class="win-on" x="270" y="130" width="230" height="144" fill="url(#winOn)"/>
+        <rect x="362" y="222" width="46" height="52" rx="4" fill="#8a4a38"/>
+      </g>
+      <rect class="sign" x="320" y="164" width="130" height="26" rx="8"/>
+      <text x="385" y="183" text-anchor="middle">Classroom</text>
+    </a>
+
+    <!-- Games: Arcade -->
+    <a class="bld" id="b-games" href="#games" aria-label="Arcade: Games">
+      <g class="shape">
+        <rect x="540" y="160" width="150" height="114" fill="var(--violet)"/>
+        <rect x="530" y="140" width="170" height="26" rx="6" fill="#6a56c9"/>
+        <rect x="540" y="160" width="150" height="114" fill="url(#winOff)"/>
+        <rect class="win-on" x="540" y="160" width="150" height="114" fill="url(#winOn)"/>
+        <rect x="592" y="226" width="46" height="48" rx="4" fill="#6a56c9"/>
+      </g>
+      <rect class="sign" x="560" y="174" width="110" height="26" rx="8"/>
+      <text x="615" y="193" text-anchor="middle">Games</text>
+    </a>
+
+    <!-- Practice: Library -->
+    <a class="bld" id="b-practice" href="#practice" aria-label="Library: Professional practice">
+      <g class="shape">
+        <rect x="730" y="120" width="130" height="154" fill="var(--blue)"/>
+        <polygon points="722,120 795,84 868,120" fill="#3a6fa5"/>
+        <rect x="730" y="120" width="130" height="154" fill="url(#winOff)"/>
+        <rect class="win-on" x="730" y="120" width="130" height="154" fill="url(#winOn)"/>
+        <rect x="772" y="228" width="46" height="46" rx="23 23 0 0" fill="#3a6fa5"/>
+      </g>
+      <rect class="sign" x="740" y="146" width="110" height="26" rx="8"/>
+      <text x="795" y="165" text-anchor="middle">Practice</text>
+    </a>
+
+    <!-- Contact: Post office -->
+    <a class="bld" id="b-contact" href="#contact" aria-label="Post office: Contact">
+      <g class="shape">
+        <rect x="890" y="190" width="100" height="84" fill="var(--teal)"/>
+        <polygon points="882,190 940,160 998,190" fill="#2c8d82"/>
+        <rect x="890" y="190" width="100" height="84" fill="url(#winOff)"/>
+        <rect class="win-on" x="890" y="190" width="100" height="84" fill="url(#winOn)"/>
+        <rect x="922" y="236" width="36" height="38" rx="4" fill="#2c8d82"/>
+      </g>
+      <rect class="sign" x="900" y="200" width="80" height="24" rx="8"/>
+      <text x="940" y="217" text-anchor="middle" style="font-size:17px">Contact</text>
+    </a>
+
+    <!-- wind turbine -->
+    <g stroke="var(--line)" stroke-width="3">
+      <line x1="20" y1="274" x2="20" y2="120" stroke-linecap="round"/>
+      <g class="turbine-blades" fill="#fff">
+        <ellipse cx="20" cy="92" rx="6" ry="28"/>
+        <ellipse cx="20" cy="92" rx="6" ry="28" transform="rotate(120 20 120)"/>
+        <ellipse cx="20" cy="92" rx="6" ry="28" transform="rotate(240 20 120)"/>
+      </g>
+      <circle cx="20" cy="120" r="6" fill="var(--sun)"/>
+    </g>
+
+    <!-- trees that grow as you visit buildings -->
+    <g stroke="var(--line)" stroke-width="3">
+      <g class="tree" data-for="about"><rect x="244" y="248" width="8" height="26" fill="#8a5a3a"/><circle cx="248" cy="240" r="20" fill="#4fb36a"/></g>
+      <g class="tree" data-for="classroom"><rect x="516" y="248" width="8" height="26" fill="#8a5a3a"/><circle cx="520" cy="240" r="19" fill="#5cc16f"/></g>
+      <g class="tree" data-for="games"><rect x="706" y="250" width="8" height="24" fill="#8a5a3a"/><circle cx="710" cy="242" r="17" fill="#4fb36a"/></g>
+      <g class="tree" data-for="practice"><rect x="872" y="250" width="8" height="24" fill="#8a5a3a"/><circle cx="876" cy="242" r="17" fill="#5cc16f"/></g>
+      <g class="tree" data-for="contact"><rect x="46" y="250" width="8" height="24" fill="#8a5a3a"/><circle cx="50" cy="242" r="18" fill="#4fb36a"/></g>
+    </g>
+  </svg>
+  <p class="hint">👆 Tap a building to visit it. Every visit lights up the city and grows a tree!</p>
+  <div class="ground"></div>
+</header>
+
+<main>
+
+<section class="building" id="about" data-b="about" style="--c: var(--brick)">
+  <div class="roof" data-sign="Town Hall · About me"></div>
+  <div class="body">
+    <h2>About me</h2>
+    <p class="sub">A teacher who builds his own classroom tools.</p>
+    <div class="grid">
+      <div class="card"><div class="ico">🌏</div><h3>Teaching abroad</h3><p>I teach English to primary students at Anuban Ayuthaya School in Thailand, working in a bilingual classroom context and with respect for local culture and school life.</p></div>
+      <div class="card"><div class="ico">💻</div><h3>Technology-minded</h3><p>I design interactive web games for my own lessons, so every activity fits exactly what my students are learning this week.</p></div>
+      <div class="card"><div class="ico">📚</div><h3>Always learning</h3><p>I am completing a Graduate Diploma in Teaching Profession (Faculty of Education, St Theresa International University) alongside my classroom work.</p></div>
+    </div>
+    <div class="door"></div>
+  </div>
+</section>
+
+<section class="building" id="classroom" data-b="classroom" style="--c: #f08a68">
+  <div class="roof" data-sign="School · My classroom"></div>
+  <div class="body">
+    <h2>My classroom</h2>
+    <p class="sub">A typical week, in numbers.</p>
+    <div class="stats">
+      <div class="stat"><b>3</b><span>classes</span></div>
+      <div class="stat"><b>33</b><span>students per class</span></div>
+      <div class="stat"><b>4h</b><span>of English every week</span></div>
+      <div class="stat"><b>~99</b><span>young learners</span></div>
+    </div>
+    <p class="quote">Every child speaks in every lesson. If they are laughing while they practise, it is working.<small>My teaching principle</small></p>
+    <div class="door"></div>
+  </div>
+</section>
+
+<section class="building" id="games" data-b="games" style="--c: var(--violet)">
+  <div class="roof" data-sign="Arcade · Games I made"></div>
+  <div class="body">
+    <h2>Classroom games I made</h2>
+    <p class="sub">Free, browser-based, no installation. Built for a classroom projector and 33 excited kids.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ico">🌍</div><h3>Eco-City Builder</h3>
+        <p>Students earn points by speaking and use them to upgrade a shared eco-city over two weeks. This very page is inspired by it!</p>
+        <span class="tag">Speaking · Used in class</span>
+      </div>
+      <a class="card" href="dialog-trainer.html">
+        <div class="ico">💬</div><h3>Dialog Trainer</h3>
+        <p>Pair-work dialogues from Family and Friends 2 with a built-in student randomizer.</p>
+        <span class="tag">Dialogues · F&amp;F 2</span>
+      </a>
+      <a class="card" href="bingo.html">
+        <div class="ico">🎉</div><h3>English Bingo</h3>
+        <p>Vocabulary bingo with timers and picture cards, a whole-class favourite.</p>
+        <span class="tag">Vocabulary</span>
+      </a>
+      <a class="card" href="prepositions-heal-the-planet/index.html">
+        <div class="ico">🌱</div><h3>Heal the Planet</h3>
+        <p>Practise prepositions of place while cleaning up the environment.</p>
+        <span class="tag">Grammar · Prepositions</span>
+      </a>
+      <a class="card" href="Dictation/index.html">
+        <div class="ico">✍️</div><h3>Zen Dictation Machine</h3>
+        <p>Picture-based spelling dictation, unit by unit.</p>
+        <span class="tag">Spelling · Writing</span>
+      </a>
+      <a class="card" href="word-quest/index.html">
+        <div class="ico">🍎</div><h3>Word Quest</h3>
+        <p>A quest through the food unit vocabulary.</p>
+        <span class="tag">Vocabulary · Food</span>
+      </a>
+      <a class="card" href="Pirate%20game/index.html">
+        <div class="ico">🏴‍☠️</div><h3>Pirate Game</h3>
+        <p>An interactive pirate adventure for a fun whole-class review.</p>
+        <span class="tag">Review</span>
+      </a>
+      <a class="card" href="Grammar%20Grade%201/index.html">
+        <div class="ico">🧩</div><h3>English Mini-Games</h3>
+        <p>Word Builder, A/An Sorting and Shadow Guessing for early learners.</p>
+        <span class="tag">Grammar · Phonics</span>
+      </a>
+    </div>
+    <div class="door"></div>
+  </div>
+</section>
+
+<section class="building" id="practice" data-b="practice" style="--c: var(--blue)">
+  <div class="roof" data-sign="Library · Professional practice"></div>
+  <div class="body">
+    <h2>Professional practice</h2>
+    <p class="sub">What I work on as part of my teaching-profession practicum.</p>
+    <ul class="ticks">
+      <li><b>Student-centred lessons.</b> Planning and delivering learner-focused English units under mentor-teacher supervision.</li>
+      <li><b>Digital materials.</b> Interactive games and Google Classroom activities designed for real classroom needs.</li>
+      <li><b>CLIL / TPACK lesson design.</b> Combining content, pedagogy and technology in one lesson plan.</li>
+      <li><b>Authentic assessment.</b> Using game results and speaking tasks to see what children can really do.</li>
+      <li><b>Reflective practice.</b> Collecting evidence and best practice in my E-Teaching Portfolio and sharing it in a professional learning community (PLC).</li>
+      <li><b>Parents and community.</b> Working with families and respecting local culture and wisdom.</li>
+    </ul>
+    <div class="door"></div>
+  </div>
+</section>
+
+<section class="building" id="contact" data-b="contact" style="--c: var(--teal)">
+  <div class="roof" data-sign="Post office · Contact"></div>
+  <div class="body">
+    <h2>Let's connect</h2>
+    <p class="sub">Colleagues, mentors and parents are always welcome to get in touch.</p>
+    <div class="links">
+      <a href="mailto:263512007@trsu.ac.th">✉️ 263512007@trsu.ac.th</a>
+      <span>🏫 Anuban Ayuthaya School</span>
+    </div>
+    <div class="door"></div>
+  </div>
+</section>
+
+</main>
+
+<div class="finish">
+  <div class="badge" id="badge">Visit all 5 buildings to complete the Eco-City 🌱</div>
+</div>
+<div class="verge" aria-hidden="true">🌳🌲🌳🌿🌳🌲🌳🌿🌳🌲🌳🌿🌳🌲</div>
+<footer>© 2026 Alex Seleznev · E-Teaching Portfolio · Made with ♥ in Thailand</footer>
+
+<script>
+  var visited = {};
+  var total = document.querySelectorAll('section.building').length;
+  var leaves = document.querySelectorAll('#leaves .leaf');
+
+  function visit(id) {
+    if (visited[id]) return;
+    visited[id] = true;
+    var n = Object.keys(visited).length;
+    var b = document.getElementById('b-' + id);
+    if (b) b.classList.add('lit');
+    var t = document.querySelector('.tree[data-for="' + id + '"]');
+    if (t) t.classList.add('grown');
+    for (var i = 0; i < n; i++) leaves[i].classList.add('on');
+    document.getElementById('count').textContent = n + '/' + total;
+    if (n === total) {
+      document.getElementById('hero').classList.add('done');
+      var badge = document.getElementById('badge');
+      badge.textContent = '🎉 Eco-City complete! Thank you for visiting my portfolio.';
+      badge.classList.add('win');
+    }
+  }
+
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('show');
+          visit(e.target.dataset.b);
+        }
+      });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('section.building').forEach(function (s) { io.observe(s); });
+  } else {
+    document.querySelectorAll('section.building').forEach(function (s) { s.classList.add('show'); visit(s.dataset.b); });
+  }
+</script>
+</body>
+</html>
