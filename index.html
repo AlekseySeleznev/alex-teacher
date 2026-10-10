@@ -433,7 +433,7 @@
           visit(e.target.dataset.b);
         }
       });
-    }, { threshold: 0.3 });
+    }, { threshold: 0, rootMargin: '0px 0px -30% 0px' });
     document.querySelectorAll('section.building').forEach(function (s) { io.observe(s); });
   } else {
     document.querySelectorAll('section.building').forEach(function (s) { s.classList.add('show'); visit(s.dataset.b); });
