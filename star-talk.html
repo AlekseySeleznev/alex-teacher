@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eco-City Builder 🌍</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #14152b;
+  --surface: #1d1f3d;
+  --card: #262a52;
+  --accent1: #f472b6;
+  --accent2: #fbbf24;
+  --accent3: #2dd4bf;
+  --accent4: #818cf8;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --radius: 20px;
+  --shadow: 0 8px 30px rgba(0,0,0,0.4);
+
+  /* city palette */
+  --sun-dull:     #c9c2a8;
+  --sun-bright:   #ffd54f;
+  --hill:         #6b8f5a;
+  --hill-dark:    #547147;
+  --road:         #5b6570;
+  --sidewalk:     #8d99a6;
+  --concrete:     #9aa1a6;
+  --grass:        #66bb6a;
+  --river-dirty:  #8a8564;
+  --river-clean:  #29b6f6;
+  --building1:    #78909c;
+  --building2:    #8d9ea8;
+  --building3:    #6d8189;
+  --roof:         #546e7a;
+  --litter:       #5d4037;
+  --bike-lane:    #ffca28;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', 'Arial Rounded MT Bold', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  user-select: none;
+  overflow-x: hidden;
+}
+
+.screen { display: none; min-height: 100vh; padding: 20px; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+.hidden { display: none !important; }
+
+/* ===================== START SCREEN ===================== */
+#screen-start {
+  background: radial-gradient(circle at 20% 20%, #2a2d5c 0%, #14152b 60%);
+  justify-content: center;
+  gap: 28px;
+}
+.logo {
+  font-size: clamp(2.3rem, 7vw, 4.4rem);
+  font-weight: 900;
+  letter-spacing: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.2em;
+  text-align: center;
+}
+/* the gradient is clipped to the text only — an emoji inside it would lose its own colours */
+.logo-text {
+  background: linear-gradient(90deg, var(--accent2), var(--accent1), var(--accent4));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.goal-card {
+  background: linear-gradient(135deg, var(--card), var(--surface));
+  border: 3px solid var(--accent3);
+  border-radius: var(--radius);
+  padding: 20px 30px;
+  max-width: min(92vw, 620px);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.goal-title { font-size: 1.45rem; font-weight: 900; margin-bottom: 10px; }
+.goal-text { color: var(--muted); font-size: 1.05rem; line-height: 1.6; font-weight: 600; }
+.goal-text strong { color: var(--accent3); }
+
+.class-picker { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+.class-name { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+.class-progress { display: flex; flex-direction: column; gap: 3px; font-size: 0.95rem; font-weight: 700; }
+.class-progress .lvl { color: var(--accent3); }
+.class-progress .pts { color: var(--accent2); }
+.class-go {
+  margin-top: 4px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: var(--text);
+  background: linear-gradient(135deg, var(--accent1), var(--accent4));
+  padding: 10px 26px;
+  border-radius: 999px;
+}
+.class-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 190px;
+  font-weight: 800;
+  padding: 24px 40px;
+  border-radius: var(--radius);
+  border: none;
+  background: linear-gradient(135deg, var(--card), var(--surface));
+  color: var(--text);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  border: 3px solid transparent;
+}
+.class-btn:hover { transform: translateY(-4px) scale(1.03); border-color: var(--accent3); }
+.class-btn:active { transform: scale(0.96); }
+
+/* ===================== MAIN SCREEN ===================== */
+#screen-main { justify-content: flex-start; gap: 18px; padding: 16px; }
+
+.topbar {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.icon-btn {
+  font-size: 1.4rem;
+  background: var(--surface);
+  border: none;
+  color: var(--text);
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+.icon-btn:hover { background: var(--card); }
+.class-label {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent4);
+}
+
+.jar-wrap { display: flex; align-items: center; gap: 12px; }
+.jar {
+  width: 54px; height: 70px;
+  border: 3px solid var(--accent2);
+  border-radius: 10px 10px 16px 16px;
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+}
+.jar-fill {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 0%;
+  background: linear-gradient(180deg, #fde68a, #fbbf24);
+  transition: height 0.6s cubic-bezier(.34,1.56,.64,1);
+}
+.jar-info { display: flex; flex-direction: column; font-size: 0.95rem; font-weight: 700; }
+#jar-total { color: var(--accent2); }
+#jar-badges { color: var(--muted); font-size: 0.85rem; }
+
+.called-counter {
+  font-size: 0.95rem;
+  color: var(--muted);
+  background: var(--surface);
+  padding: 6px 16px;
+  border-radius: 999px;
+}
+
+.stage {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  margin-top: 16px;
+}
+
+.big-btn {
+  font-size: 2rem;
+  font-weight: 900;
+  padding: 50px 70px;
+  border-radius: 30px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent1), var(--accent4));
+  color: #fff;
+  box-shadow: 0 10px 40px rgba(129,140,248,0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.big-btn:hover { transform: translateY(-4px) scale(1.02); }
+.big-btn:active { transform: scale(0.96); }
+
+.student-number {
+  font-size: clamp(6rem, 22vw, 11rem);
+  font-weight: 900;
+  color: var(--accent2);
+  text-shadow: 0 0 40px rgba(251,191,36,0.5);
+  line-height: 1;
+}
+.student-number.rolling { animation: rollShake 0.12s linear infinite; filter: blur(1px); }
+@keyframes rollShake {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.06) rotate(-4deg); }
+  75% { transform: scale(0.95) rotate(4deg); }
+}
+.student-number.landed { animation: landBounce 0.55s cubic-bezier(.34,1.56,.64,1); }
+.student-id { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.3rem; font-weight: 700; min-height: 46px; }
+.student-avatar {
+  width: 46px; height: 46px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; box-shadow: var(--shadow);
+}
+.student-photo { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow); }
+@keyframes landBounce {
+  0% { transform: scale(0.4) rotate(-8deg); }
+  55% { transform: scale(1.3) rotate(4deg); }
+  75% { transform: scale(0.9) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.ghost-btn {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: 14px;
+  border: 2px solid var(--card);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.ghost-btn:hover { border-color: var(--accent3); color: var(--text); }
+
+.mode-picker {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mode-btn {
+  font-size: 1.15rem;
+  font-weight: 800;
+  padding: 22px 28px;
+  border-radius: 18px;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease;
+  min-width: 170px;
+}
+.mode-btn:hover { transform: translateY(-3px); }
+.mode-btn:active { transform: scale(0.96); }
+.mode-btn.easy { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+.mode-btn.medium { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+.mode-btn.hard { background: linear-gradient(135deg, #f87171, #ef4444); }
+.mode-btn.mistake { background: linear-gradient(135deg, #eab308, #a16207); }
+.mode-btn.order { background: linear-gradient(135deg, #c084fc, #9333ea); }
+
+.question-badge {
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--accent2);
+}
+
+/* ---- picture / visual aid ---- */
+#question-visual { display: flex; justify-content: center; min-height: 40px; }
+.emoji-visual { font-size: 4rem; line-height: 1; text-align: center; }
+.scene-box {
+  position: relative;
+  width: 220px; height: 160px;
+  background: var(--card);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+.scene-emoji { position: absolute; line-height: 1; }
+.repeat-row {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  max-width: 380px; font-size: 2.3rem;
+}
+.color-card {
+  width: 130px; height: 130px;
+  border-radius: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3.4rem;
+  box-shadow: var(--shadow);
+}
+.number-card { display: flex; align-items: center; gap: 14px; }
+.number-emoji { font-size: 3rem; }
+.number-value { font-size: 3.2rem; font-weight: 900; color: var(--accent2); }
+
+.question-card {
+  font-size: clamp(1.6rem, 4.4vw, 2.5rem);
+  font-weight: 800;
+  text-align: center;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 34px 30px;
+  max-width: 800px;
+  box-shadow: var(--shadow);
+  line-height: 1.35;
+}
+
+/* ---- sentence hint chips ---- */
+.hint-row {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  max-width: 700px;
+}
+.hint-chip {
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: transparent;
+  border: 2px dashed var(--card);
+  color: var(--muted);
+  min-width: 20px;
+  text-align: center;
+}
+.hint-chip.revealed {
+  background: linear-gradient(135deg, var(--accent3), #14b8a6);
+  border: 2px solid transparent;
+  color: #08221c;
+}
+
+.question-controls { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.judge-controls { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+.judge-btn {
+  font-size: 1.4rem;
+  font-weight: 900;
+  padding: 22px 40px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease;
+}
+.judge-btn:hover { transform: translateY(-3px); }
+.judge-btn:active { transform: scale(0.95); }
+.judge-btn.correct { background: linear-gradient(135deg, #4ade80, #22c55e); }
+.judge-btn.skip { background: linear-gradient(135deg, #6b7280, #4b5563); }
+
+/* ===================== MODAL ===================== */
+.modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.modal-box {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 30px;
+  width: min(90vw, 380px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.modal-box h3 { font-size: 1.3rem; }
+.modal-btn {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  background: var(--card);
+  color: var(--text);
+}
+.modal-btn.danger { background: #7f1d1d; color: #fecaca; }
+.modal-btn:hover { filter: brightness(1.15); }
+
+/* ===================== ECO-CITY SVG LAYERS ===================== */
+/* All scoped to #cityscape. The flag classes (trash-gone … city-clean) are toggled by
+   applyCityLayers(); everything else is idle animation that makes the scene feel alive. */
+#cityscape .sky-dirty { opacity: 1; transition: opacity 1.6s ease; }
+#cityscape .sky-clean { opacity: 0; transition: opacity 1.6s ease; }
+#cityscape.city-clean .sky-dirty { opacity: 0; }
+#cityscape.city-clean .sky-clean { opacity: 1; }
+
+#cityscape .sun { fill: var(--sun-dull); transition: fill 1.4s ease; }
+#cityscape.city-clean .sun { fill: var(--sun-bright); filter: url(#sunGlow); }
+#cityscape .sun-rays {
+  opacity: 0;
+  transform-box: fill-box; transform-origin: center;
+  transition: opacity 1.4s ease;
+  animation: sunSpin 70s linear infinite;
+}
+#cityscape.city-clean .sun-rays { opacity: 1; }
+#cityscape .sun-face { opacity: 0; transition: opacity 1.2s ease 0.7s; }
+#cityscape.city-clean .sun-face { opacity: 1; }
+@keyframes sunSpin { to { transform: rotate(360deg); } }
+
+#cityscape .smog { opacity: 0.9; transition: opacity 1.8s ease; }
+#cityscape.city-clean .smog { opacity: 0; }
+#cityscape .chimney { opacity: 1; transition: opacity 1.2s ease; }
+#cityscape.city-clean .chimney { opacity: 0; }
+#cityscape .puff {
+  transform-box: fill-box; transform-origin: center;
+  animation: puffRise 4.5s ease-out infinite;
+}
+@keyframes puffRise {
+  0%   { transform: translateY(0) scale(0.5); opacity: 0.85; }
+  100% { transform: translateY(-130px) scale(1.7); opacity: 0; }
+}
+
+/* clouds and birds arrive with the clean sky */
+#cityscape .clouds, #cityscape .birds { opacity: 0; transition: opacity 1.8s ease; }
+#cityscape.city-clean .clouds, #cityscape.city-clean .birds { opacity: 1; }
+#cityscape .cloud { animation: cloudDrift 50s ease-in-out infinite alternate; }
+@keyframes cloudDrift { to { transform: translateX(80px); } }
+#cityscape .bird { animation: birdFly 30s linear infinite; }
+@keyframes birdFly { from { transform: translateX(-180px); } to { transform: translateX(1780px); } }
+
+/* drab concrete town -> friendly coloured houses */
+#cityscape .bld { transition: fill 1.6s ease; }
+#cityscape .bld-1 { fill: var(--building1); }
+#cityscape .bld-2 { fill: var(--building2); }
+#cityscape .bld-3 { fill: var(--building3); }
+#cityscape.city-clean .bld-1 { fill: #ef8b63; }
+#cityscape.city-clean .bld-2 { fill: #f3b441; }
+#cityscape.city-clean .bld-3 { fill: #6fb98f; }
+#cityscape .roof { fill: var(--roof); transition: fill 1.6s ease; }
+#cityscape.city-clean .roof { fill: #6d5a52; }
+
+#layer-trash { opacity: 1; transition: opacity 0.7s ease, transform 0.7s ease; }
+#cityscape.trash-gone #layer-trash { opacity: 0; transform: translateY(16px) scale(0.7); }
+
+#layer-tree, #layer-flower, #layer-bike, #layer-bin, #layer-solar, #layer-turbine {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.5) translateY(14px);
+  transition: opacity 0.8s cubic-bezier(0.34,1.56,0.64,1), transform 0.8s cubic-bezier(0.34,1.56,0.64,1);
+}
+#cityscape.tree-on    #layer-tree,
+#cityscape.flower-on  #layer-flower,
+#cityscape.bike-on    #layer-bike,
+#cityscape.bin-on     #layer-bin,
+#cityscape.solar-on   #layer-solar,
+#cityscape.turbine-on #layer-turbine {
+  opacity: 1; transform: scale(1) translateY(0);
+}
+
+#cityscape .park-ground { fill: var(--concrete); transition: fill 1.2s ease; }
+#cityscape.park-on .park-ground { fill: var(--grass); }
+#cityscape .park-details { opacity: 0; transition: opacity 1s ease 0.2s; }
+#cityscape.park-on .park-details { opacity: 1; }
+
+/* the river sits in the foreground and is drawn last, so nothing can cover it */
+#cityscape .river-fill { fill: var(--river-dirty); transition: fill 1.6s ease; }
+#cityscape.river-on .river-fill { fill: var(--river-clean); }
+#cityscape .river-scum { opacity: 1; transition: opacity 1.4s ease; }
+#cityscape.river-on .river-scum { opacity: 0; }
+#cityscape .ripple { opacity: 0; transition: opacity 1.2s ease 0.4s; }
+#cityscape.river-on .ripple { opacity: 0.6; }
+#cityscape .fish { opacity: 0; transition: opacity 1s ease 0.5s; }
+/* the fish emoji faces left, so they swim right-to-left or they look like they are
+   going backwards */
+#cityscape.river-on .fish { opacity: 1; animation: swim 17s linear infinite; }
+@keyframes swim { from { transform: translateX(1740px); } to { transform: translateX(-140px); } }
+
+#cityscape .butterfly {
+  transform-box: fill-box; transform-origin: center;
+  animation: flutter 3.6s ease-in-out infinite alternate;
+}
+@keyframes flutter {
+  from { transform: translate(0, 0) rotate(-8deg); }
+  to   { transform: translate(20px, -26px) rotate(10deg); }
+}
+
+#cityscape .turbine-blades {
+  transform-box: fill-box; transform-origin: center;
+  animation: citySpin 3.2s linear infinite;
+}
+@keyframes citySpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ===================== ECO-CITY OVERLAY ===================== */
+#city-overlay {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+}
+.city-top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.city-title { font-size: 1.5rem; font-weight: 900; white-space: nowrap; }
+.city-progress { flex: 1; display: flex; align-items: center; gap: 12px; min-width: 200px; }
+.city-bar { flex: 1; height: 22px; background: var(--card); border-radius: 999px; overflow: hidden; min-width: 80px; }
+.city-bar-fill {
+  height: 100%; width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4ade80, #a3e635, #fbbf24);
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#city-level-text { font-weight: 800; white-space: nowrap; }
+#city-built-text { color: var(--accent2); font-weight: 800; white-space: nowrap; }
+.city-stage {
+  flex: 1; position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  min-height: 0;
+}
+#cityscape { width: 100%; height: 100%; display: block; }
+.city-banner {
+  position: absolute; left: 50%; bottom: 24px;
+  transform: translateX(-50%);
+  background: rgba(20, 21, 43, 0.92);
+  border: 3px solid var(--accent3);
+  border-radius: var(--radius);
+  padding: 16px 32px;
+  font-size: clamp(1.1rem, 2.4vw, 1.8rem);
+  font-weight: 900;
+  text-align: center;
+  animation: bannerIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.city-banner small { display: block; margin-top: 6px; font-weight: 700; color: var(--muted); font-size: 0.65em; }
+
+/* ---- demo mode ---- */
+.demo-badge {
+  background: var(--accent1);
+  color: #14152b;
+  font-weight: 900;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.demo-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.demo-btn {
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 12px 20px;
+  border-radius: 14px;
+  border: 2px solid var(--card);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.15s ease;
+}
+.demo-btn:hover { filter: brightness(1.25); transform: translateY(-2px); }
+.demo-btn:active { transform: scale(0.96); }
+.demo-btn.primary { background: linear-gradient(135deg, var(--accent1), var(--accent4)); border-color: transparent; }
+.city-banner-emoji { font-size: 1.3em; }
+@keyframes bannerIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.9); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* ===================== TOAST ===================== */
+.toast {
+  position: fixed;
+  top: 24px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  z-index: 60;
+  animation: toastIn 0.3s ease;
+}
+@keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(-20px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+/* ===================== FLOATING STARS ===================== */
+.float-star {
+  position: fixed;
+  font-size: 2rem;
+  pointer-events: none;
+  z-index: 70;
+  animation: floatUp 1.1s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-160px) scale(1.4); opacity: 0; }
+}
+
+/* ===================== CONFETTI ===================== */
+.confetti-piece {
+  position: fixed;
+  top: -20px;
+  font-size: 1.6rem;
+  pointer-events: none;
+  z-index: 65;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  to { transform: translateY(105vh) rotate(360deg); opacity: 0.3; }
+}
+
+@media (max-width: 600px) {
+  .student-number { font-size: 5.5rem; }
+  .big-btn { padding: 36px 40px; font-size: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ START SCREEN ══════════════════ -->
+<div id="screen-start" class="screen active">
+  <div class="logo"><span>🌍</span><span class="logo-text">Eco-City Builder</span></div>
+
+  <div class="goal-card">
+    <div class="goal-title">🌍 Our class goal: build an Eco-City</div>
+    <div class="goal-text" id="goal-text"></div>
+  </div>
+
+  <div class="class-picker" id="class-picker"></div>
+</div>
+
+<!-- ══════════════════ MAIN SCREEN ══════════════════ -->
+<div id="screen-main" class="screen">
+  <div class="topbar">
+    <button id="btn-back" class="icon-btn" title="Back">←</button>
+    <div class="class-label" id="class-label">2/1</div>
+    <div class="jar-wrap">
+      <div class="jar" id="jar"><div class="jar-fill" id="jar-fill"></div></div>
+      <div class="jar-info">
+        <span id="jar-total">0 ⭐</span>
+        <span id="jar-badges"></span>
+      </div>
+    </div>
+    <button id="btn-city" class="icon-btn" title="Our Eco-City">🏙️</button>
+    <button id="btn-settings" class="icon-btn" title="Settings">⚙️</button>
+  </div>
+
+  <div class="called-counter" id="called-counter">0 / 33 called this round</div>
+
+  <div class="stage" id="stage-call">
+    <button id="btn-call" class="big-btn">🎲 Call a Student</button>
+  </div>
+
+  <div class="stage hidden" id="stage-student">
+    <div class="student-number" id="student-number">--</div>
+    <div class="student-id" id="student-id"></div>
+    <button id="btn-reroll" class="ghost-btn">🔄 Different student (absent)</button>
+    <div class="mode-picker">
+      <button class="mode-btn easy" data-mode="easy">⭐ Easy</button>
+      <button class="mode-btn medium" data-mode="medium">⭐⭐ Medium</button>
+      <button class="mode-btn hard" data-mode="hard">⭐⭐⭐ Hard</button>
+      <button class="mode-btn mistake" data-mode="mistake">🔍 Find the Mistake</button>
+      <button class="mode-btn order" data-mode="order">🔀 Word Order</button>
+    </div>
+  </div>
+
+  <div class="stage hidden" id="stage-question">
+    <div class="question-badge" id="question-badge">EASY · 1⭐</div>
+    <div id="question-visual" class="hidden"></div>
+    <div class="question-card" id="question-text">Question</div>
+    <div class="hint-row hidden" id="hint-row"></div>
+    <div class="question-controls">
+      <button id="btn-hint" class="ghost-btn">💡 Hint (Space)</button>
+      <button id="btn-hide-hint" class="ghost-btn">🙈 Hide hint</button>
+      <button id="btn-shuffle" class="ghost-btn">🔀 New question</button>
+    </div>
+    <div class="judge-controls">
+      <button id="btn-correct" class="judge-btn correct">✅ Correct / Well done</button>
+      <button id="btn-skip" class="judge-btn skip">➡️ Next student</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SETTINGS MODAL ══════════════════ -->
+<div id="settings-modal" class="modal hidden">
+  <div class="modal-box">
+    <h3>⚙️ Settings — class <span id="settings-class-label"></span></h3>
+    <button class="modal-btn" id="btn-demo">🎬 Demo mode — show the city upgrades</button>
+    <button class="modal-btn" id="btn-reset-round">🔁 Reset round (everyone can be called again)</button>
+    <button class="modal-btn danger" id="btn-reset-points">🗑️ Reset points to zero</button>
+    <button class="modal-btn" id="btn-close-settings">Close</button>
+  </div>
+</div>
+
+<!-- ══════════════════ ECO-CITY OVERLAY ══════════════════ -->
+<div id="city-overlay" class="hidden">
+  <div class="city-top">
+    <div class="city-title">🌍 Our Eco-City</div>
+    <span class="demo-badge hidden" id="demo-badge">DEMO</span>
+    <div class="city-progress">
+      <div class="city-bar"><div class="city-bar-fill" id="city-bar-fill"></div></div>
+      <span id="city-level-text">Level 0/10</span>
+      <span id="city-built-text"></span>
+    </div>
+    <button class="icon-btn" id="btn-close-city" title="Back to the lesson">✕</button>
+  </div>
+  <div class="city-stage">
+    <svg id="cityscape" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="skyDirtyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8d99a6"/>
+          <stop offset="100%" stop-color="#c9c2a8"/>
+        </linearGradient>
+        <linearGradient id="skyCleanGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#4fc3f7"/>
+          <stop offset="100%" stop-color="#e3f5fd"/>
+        </linearGradient>
+        <filter id="smogBlur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="12"/>
+        </filter>
+        <filter id="sunGlow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="14" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <!-- keeps the moving birds and fish inside the picture: without it they carry on
+             across the letterbox bars beside the scene -->
+        <clipPath id="sceneClip"><rect x="0" y="0" width="1600" height="900"/></clipPath>
+      </defs>
+
+      <!-- ── SKY ── -->
+      <rect class="sky-dirty" x="0" y="0" width="1600" height="680" fill="url(#skyDirtyGrad)"/>
+      <rect class="sky-clean" x="0" y="0" width="1600" height="680" fill="url(#skyCleanGrad)"/>
+
+      <!-- ── SUN (gets rays and a face once the smog clears) ── -->
+      <g class="sun-rays" stroke="#ffd54f" stroke-width="9" stroke-linecap="round">
+          <line x1="1464" y1="140" x2="1488" y2="140"/>
+          <line x1="1453" y1="182" x2="1474" y2="194"/>
+          <line x1="1422" y1="213" x2="1434" y2="234"/>
+          <line x1="1380" y1="224" x2="1380" y2="248"/>
+          <line x1="1338" y1="213" x2="1326" y2="234"/>
+          <line x1="1307" y1="182" x2="1286" y2="194"/>
+          <line x1="1296" y1="140" x2="1272" y2="140"/>
+          <line x1="1307" y1="98" x2="1286" y2="86"/>
+          <line x1="1338" y1="67" x2="1326" y2="46"/>
+          <line x1="1380" y1="56" x2="1380" y2="32"/>
+          <line x1="1422" y1="67" x2="1434" y2="46"/>
+          <line x1="1453" y1="98" x2="1474" y2="86"/>
+      </g>
+      <circle class="sun" cx="1380" cy="140" r="70"/>
+      <g class="sun-face">
+        <circle cx="1356" cy="124" r="8" fill="#b26a00"/>
+        <circle cx="1404" cy="124" r="8" fill="#b26a00"/>
+        <path d="M1346,160 Q1380,190 1414,160" stroke="#b26a00" stroke-width="8" fill="none" stroke-linecap="round"/>
+      </g>
+
+      <!-- ── CLOUDS ── -->
+      <g class="clouds" fill="#ffffff">
+        <g class="cloud" style="animation-duration:50s">
+          <ellipse cx="250" cy="150" rx="72" ry="34"/>
+          <ellipse cx="305" cy="134" rx="56" ry="30"/>
+          <ellipse cx="196" cy="142" rx="46" ry="26"/>
+        </g>
+        <g class="cloud" style="animation-duration:66s; animation-delay:-14s">
+          <ellipse cx="820" cy="120" rx="64" ry="30"/>
+          <ellipse cx="868" cy="106" rx="50" ry="26"/>
+          <ellipse cx="772" cy="112" rx="42" ry="23"/>
+        </g>
+        <g class="cloud" style="animation-duration:58s; animation-delay:-30s">
+          <ellipse cx="1080" cy="235" rx="58" ry="27"/>
+          <ellipse cx="1124" cy="222" rx="45" ry="23"/>
+        </g>
+      </g>
+
+      <!-- ── BIRDS ── -->
+      <g class="birds" clip-path="url(#sceneClip)" stroke="#455a64" stroke-width="5" fill="none" stroke-linecap="round">
+        <g transform="translate(0,205)"><g class="bird" style="animation-duration:30s">
+          <path d="M0,0 q15,-13 30,0"/><path d="M30,0 q15,-13 30,0"/>
+        </g></g>
+        <g transform="translate(0,268)"><g class="bird" style="animation-duration:38s; animation-delay:-11s">
+          <path d="M0,0 q12,-10 24,0"/><path d="M24,0 q12,-10 24,0"/>
+        </g></g>
+        <g transform="translate(0,168)"><g class="bird" style="animation-duration:45s; animation-delay:-24s">
+          <path d="M0,0 q9,-8 18,0"/><path d="M18,0 q9,-8 18,0"/>
+        </g></g>
+      </g>
+
+      <!-- ── SMOG ── -->
+      <g class="smog" filter="url(#smogBlur)">
+        <ellipse cx="300" cy="170" rx="150" ry="48" fill="#9e9e8f"/>
+        <ellipse cx="680" cy="250" rx="180" ry="52" fill="#a6a190"/>
+        <ellipse cx="1020" cy="160" rx="160" ry="45" fill="#9e9e8f"/>
+        <ellipse cx="500" cy="350" rx="210" ry="58" fill="#8d8975"/>
+        <ellipse cx="1180" cy="330" rx="170" ry="50" fill="#9e9e8f"/>
+      </g>
+
+      <!-- ── HILLS ── -->
+      <g id="hills">
+        <path d="M0,600 Q200,455 430,530 Q640,465 820,555 L820,700 L0,700 Z" fill="var(--hill-dark)"/>
+        <path d="M1120,615 Q1330,520 1600,595 L1600,700 L1120,700 Z" fill="var(--hill-dark)"/>
+        <path d="M0,645 Q230,505 490,580 Q700,525 930,600 L930,700 L0,700 Z" fill="var(--hill)"/>
+      </g>
+
+      <!-- ── WIND TURBINES ── -->
+      <g id="layer-turbine">
+        <g transform="translate(215,480)">
+          <rect x="-4" y="0" width="8" height="120" fill="#eceff1"/>
+          <g class="turbine-blades">
+            <ellipse cx="0" cy="0" rx="6" ry="50" fill="#ffffff" transform="rotate(0)"/>
+            <ellipse cx="0" cy="0" rx="6" ry="50" fill="#ffffff" transform="rotate(120)"/>
+            <ellipse cx="0" cy="0" rx="6" ry="50" fill="#ffffff" transform="rotate(240)"/>
+            <circle cx="0" cy="0" r="8" fill="#b0bec5"/>
+          </g>
+        </g>
+        <g transform="translate(545,520) scale(0.8)">
+          <rect x="-4" y="0" width="8" height="120" fill="#eceff1"/>
+          <g class="turbine-blades">
+            <ellipse cx="0" cy="0" rx="6" ry="50" fill="#ffffff" transform="rotate(40)"/>
+            <ellipse cx="0" cy="0" rx="6" ry="50" fill="#ffffff" transform="rotate(160)"/>
+            <ellipse cx="0" cy="0" rx="6" ry="50" fill="#ffffff" transform="rotate(280)"/>
+            <circle cx="0" cy="0" r="8" fill="#b0bec5"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- ── BUILDINGS ── -->
+      <g id="buildings">
+        <rect class="bld bld-1" x="620" y="437" width="185" height="209"/>
+        <rect class="bld bld-2" x="845" y="387" width="165" height="259"/>
+        <rect class="bld bld-3" x="1050" y="467" width="205" height="179"/>
+        <g fill="#ffe082" opacity="0.92">
+        <rect x="650" y="465" width="26" height="30" rx="3"/>
+        <rect x="650" y="522" width="26" height="30" rx="3"/>
+        <rect x="650" y="579" width="26" height="30" rx="3"/>
+        <rect x="705" y="465" width="26" height="30" rx="3"/>
+        <rect x="705" y="522" width="26" height="30" rx="3"/>
+        <rect x="705" y="579" width="26" height="30" rx="3"/>
+        <rect x="760" y="465" width="26" height="30" rx="3"/>
+        <rect x="760" y="522" width="26" height="30" rx="3"/>
+        <rect x="760" y="579" width="26" height="30" rx="3"/>
+        <rect x="872" y="415" width="26" height="30" rx="3"/>
+        <rect x="872" y="472" width="26" height="30" rx="3"/>
+        <rect x="872" y="529" width="26" height="30" rx="3"/>
+        <rect x="872" y="586" width="26" height="30" rx="3"/>
+        <rect x="938" y="415" width="26" height="30" rx="3"/>
+        <rect x="938" y="472" width="26" height="30" rx="3"/>
+        <rect x="938" y="529" width="26" height="30" rx="3"/>
+        <rect x="938" y="586" width="26" height="30" rx="3"/>
+        <rect x="1080" y="498" width="26" height="30" rx="3"/>
+        <rect x="1080" y="555" width="26" height="30" rx="3"/>
+        <rect x="1145" y="498" width="26" height="30" rx="3"/>
+        <rect x="1145" y="555" width="26" height="30" rx="3"/>
+        <rect x="1210" y="498" width="26" height="30" rx="3"/>
+        <rect x="1210" y="555" width="26" height="30" rx="3"/>
+        </g>
+        <rect class="roof" x="614" y="423" width="197" height="16" rx="3"/>
+        <rect class="roof" x="839" y="373" width="177" height="16" rx="3"/>
+        <rect class="roof" x="1044" y="453" width="217" height="16" rx="3"/>
+      </g>
+
+      <!-- ── SMOKESTACK (disappears when the city is clean) ── -->
+      <g class="chimney">
+        <rect x="958" y="315" width="36" height="60" rx="4" fill="#6d6259"/>
+        <g fill="#9e9e8f">
+          <circle class="puff" cx="976" cy="310" r="16" style="animation-delay:0s"/>
+          <circle class="puff" cx="976" cy="310" r="13" style="animation-delay:1.5s"/>
+          <circle class="puff" cx="976" cy="310" r="18" style="animation-delay:3s"/>
+        </g>
+      </g>
+
+      <!-- ── SOLAR PANELS ── -->
+      <g id="layer-solar">
+        <g transform="translate(628,389)">
+          <rect width="170" height="32" rx="3" fill="#1e88e5" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="0" y1="16" x2="170" y2="16" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="42" y1="0" x2="42" y2="32" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="85" y1="0" x2="85" y2="32" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="128" y1="0" x2="128" y2="32" stroke="#0d47a1" stroke-width="2"/>
+        </g>
+        <g transform="translate(853,339)">
+          <rect width="150" height="32" rx="3" fill="#1e88e5" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="0" y1="16" x2="150" y2="16" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="38" y1="0" x2="38" y2="32" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="75" y1="0" x2="75" y2="32" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="112" y1="0" x2="112" y2="32" stroke="#0d47a1" stroke-width="2"/>
+        </g>
+        <g transform="translate(1058,419)">
+          <rect width="190" height="32" rx="3" fill="#1e88e5" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="0" y1="16" x2="190" y2="16" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="48" y1="0" x2="48" y2="32" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="95" y1="0" x2="95" y2="32" stroke="#0d47a1" stroke-width="2"/>
+          <line x1="142" y1="0" x2="142" y2="32" stroke="#0d47a1" stroke-width="2"/>
+        </g>
+      </g>
+
+      <!-- ── GROUND ── -->
+      <rect id="sidewalk" x="0" y="620" width="1600" height="26" fill="var(--sidewalk)"/>
+      <rect id="street" x="0" y="646" width="1600" height="156" fill="var(--road)"/>
+
+      <!-- ── PARK ── -->
+      <g id="layer-park">
+        <rect class="park-ground" x="60" y="658" width="500" height="114" rx="16"/>
+        <g class="park-details">
+          <path d="M85,762 Q310,742 535,762" stroke="#2e7d32" stroke-width="4" fill="none" opacity="0.5"/>
+          <path d="M85,690 Q310,672 535,690" stroke="#2e7d32" stroke-width="3" fill="none" opacity="0.4"/>
+          <circle cx="150" cy="726" r="7" fill="#2e7d32" opacity="0.45"/>
+          <circle cx="430" cy="710" r="6" fill="#2e7d32" opacity="0.45"/>
+        </g>
+      </g>
+
+      <!-- ── FLOWERS (+ butterflies) ── -->
+      <g id="layer-flower">
+        <text x="110" y="730" font-size="40">🌸</text>
+        <text x="205" y="762" font-size="36">🌼</text>
+        <text x="300" y="726" font-size="38">🌷</text>
+        <text x="395" y="764" font-size="36">🌻</text>
+        <text x="480" y="730" font-size="34">🌸</text>
+        <g class="butterfly" style="animation-delay:0s"><text x="250" y="690" font-size="34">🦋</text></g>
+        <g class="butterfly" style="animation-delay:-1.8s"><text x="440" y="700" font-size="30">🦋</text></g>
+      </g>
+
+      <!-- ── TREES ── -->
+      <g id="layer-tree">
+        <text x="95" y="655" font-size="76">🌳</text>
+        <text x="285" y="648" font-size="84">🌳</text>
+        <text x="470" y="658" font-size="74">🌳</text>
+      </g>
+
+      <!-- ── RECYCLING BINS ── -->
+      <g id="layer-bin">
+        <g transform="translate(790,700)">
+          <rect width="50" height="64" rx="7" fill="#2e7d32"/>
+          <rect x="-5" y="-9" width="60" height="12" rx="4" fill="#1b5e20"/>
+          <text x="25" y="44" font-size="28" text-anchor="middle">♻️</text>
+        </g>
+        <g transform="translate(1210,700)">
+          <rect width="50" height="64" rx="7" fill="#2e7d32"/>
+          <rect x="-5" y="-9" width="60" height="12" rx="4" fill="#1b5e20"/>
+          <text x="25" y="44" font-size="28" text-anchor="middle">♻️</text>
+        </g>
+      </g>
+
+      <!-- ── BIKE LANE ── -->
+      <g id="layer-bike">
+        <rect x="0" y="770" width="1600" height="32" fill="var(--bike-lane)" opacity="0.95"/>
+        <text x="700" y="798" font-size="34">🚲</text>
+        <text x="1000" y="798" font-size="34">🚲</text>
+        <text x="330" y="798" font-size="34">🚲</text>
+      </g>
+
+      <!-- ── LITTER (cleared by the first upgrade) ── -->
+      <g id="layer-trash">
+        <text x="620" y="716" font-size="50">🗑️</text>
+        <text x="880" y="754" font-size="40">🥤</text>
+        <text x="1120" y="700" font-size="38">📰</text>
+        <text x="1380" y="750" font-size="42">🍌</text>
+        <ellipse cx="300" cy="700" rx="30" ry="11" fill="var(--litter)" opacity="0.75"/>
+        <ellipse cx="1480" cy="712" rx="26" ry="10" fill="var(--litter)" opacity="0.75"/>
+      </g>
+
+      <!-- ── RIVER (drawn last: nothing can cover it) ── -->
+      <g id="layer-river" clip-path="url(#sceneClip)">
+        <path class="river-fill" d="M0,806 Q140,794 280,806 T560,806 T840,806 T1120,806 T1400,806 T1600,802 L1600,900 L0,900 Z"/>
+        <path d="M0,806 Q140,794 280,806 T560,806 T840,806 T1120,806 T1400,806 T1600,802"
+              stroke="#4e5a34" stroke-width="5" fill="none" opacity="0.35"/>
+        <g class="river-scum" fill="#615c3c" opacity="0.85">
+          <ellipse cx="250" cy="855" rx="95" ry="22"/>
+          <ellipse cx="760" cy="878" rx="120" ry="20"/>
+          <ellipse cx="1290" cy="848" rx="105" ry="24"/>
+        </g>
+        <g class="ripple" stroke="#e1f5fe" stroke-width="7" stroke-linecap="round" fill="none">
+          <path d="M110,842 q34,-12 68,0"/>
+          <path d="M430,872 q34,-12 68,0"/>
+          <path d="M700,836 q34,-12 68,0"/>
+          <path d="M980,876 q34,-12 68,0"/>
+          <path d="M1300,846 q34,-12 68,0"/>
+        </g>
+        <g transform="translate(0,858)"><g class="fish" style="animation-delay:0s">
+          <text font-size="48">🐟</text>
+        </g></g>
+        <g transform="translate(0,888)"><g class="fish" style="animation-delay:-6s">
+          <text font-size="40">🐠</text>
+        </g></g>
+        <g transform="translate(0,834)"><g class="fish" style="animation-delay:-11.5s">
+          <text font-size="36">🐟</text>
+        </g></g>
+      </g>
+    </svg>
+    <div class="city-banner hidden" id="city-banner"></div>
+  </div>
+
+  <div class="demo-bar hidden" id="demo-bar">
+    <button class="demo-btn" id="demo-reset">⏮ Reset</button>
+    <button class="demo-btn" id="demo-prev">◀ Back</button>
+    <button class="demo-btn" id="demo-next">▶ Next upgrade</button>
+    <button class="demo-btn primary" id="demo-play">▶▶ Play all 10</button>
+    <button class="demo-btn" id="demo-exit">✕ Exit demo</button>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- Students are identified by number only. To show names or avatars locally, add a
+     <script src="roster.js"> here (roster.js is kept out of the public repo). -->
+
+<script>
+// ═══════════════════════ QUESTION BANK (Family and Friends 2, Units 1-6) ═══════════════════════
+// hint: array of tokens (static model sentence) OR a function(resolvedValue) -> tokens,
+// used only when the question has a picture that resolves a concrete answer (color/number/object/position).
+
+const SCENE_POS = {
+  on:      { baseTop: "62%", objTop: "12%", objLeft: "50%", objScale: 1,    objZ: 2, baseZ: 1 },
+  under:   { baseTop: "42%", objTop: "82%", objLeft: "50%", objScale: 0.85, objZ: 0, baseZ: 2 },
+  next:    { baseTop: "50%", objTop: "50%", objLeft: "80%", objScale: 1,    objZ: 1, baseZ: 1 },
+  behind:  { baseTop: "55%", objTop: "32%", objLeft: "28%", objScale: 0.78, objZ: 0, baseZ: 2 },
+  infront: { baseTop: "45%", objTop: "65%", objLeft: "65%", objScale: 1.15, objZ: 2, baseZ: 1 },
+};
+
+const COLOR_PALETTE = [
+  { name: "red", hex: "#ef4444" },
+  { name: "blue", hex: "#3b82f6" },
+  { name: "green", hex: "#22c55e" },
+  { name: "yellow", hex: "#eab308" },
+  { name: "pink", hex: "#ec4899" },
+  { name: "purple", hex: "#a855f7" },
+  { name: "orange", hex: "#f97316" },
+  { name: "brown", hex: "#92400e" },
+  { name: "black", hex: "#111827" },
+];
+
+const NUM_WORDS = {
+  1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten",
+  20: "twenty", 30: "thirty", 40: "forty", 50: "fifty", 60: "sixty", 70: "seventy", 80: "eighty", 90: "ninety", 100: "one hundred",
+};
+function numWord(n) { return NUM_WORDS[n] || String(n); }
+
+// Picks a random Yes/No model answer every time the question is drawn — kids need to
+// hear both forms, not just "yes" over and over.
+function yn(yesTokens, noTokens) {
+  return () => (Math.random() < 0.5 ? yesTokens : noTokens);
+}
+
+const QUIZ = {
+  easy: [
+    // Unit 1 — classroom objects (real things in the room, point at them)
+    { text: "Is this your desk?", hint: yn(["Yes,", "it", "is."], ["No,", "it", "isn't."]) },
+    { text: "Is that a board?", hint: yn(["Yes,", "it", "is."], ["No,", "it", "isn't."]) },
+    { text: "Are these your pencils?", hint: yn(["Yes,", "they", "are."], ["No,", "they", "aren't."]) },
+    { text: "Are those chairs red?", hint: yn(["Yes,", "they're", "red."], ["No,", "they", "aren't", "red."]) },
+    { text: "Is this a coat peg?", hint: yn(["Yes,", "it", "is."], ["No,", "it", "isn't."]) },
+    // Unit 2 — feelings (picture flips between the matching face and a different one)
+    { text: "Are you happy today?", hint: yn(["Yes,", "I'm", "happy."], ["No,", "I'm", "not", "happy."]) },
+    { text: "Are you cold?", hint: yn(["Yes,", "I'm", "cold."], ["No,", "I'm", "not", "cold."]) },
+    {
+      text: "Is he sad?",
+      img: { type: "pick", options: [{ emoji: "😢", match: true }, { emoji: "😊", match: false }] },
+      hint: (opt) => (opt.match ? ["Yes,", "he's", "sad."] : ["No,", "he's", "not", "sad."]),
+    },
+    {
+      text: "Is she tired?",
+      img: { type: "pick", options: [{ emoji: "😴", match: true }, { emoji: "😃", match: false }] },
+      hint: (opt) => (opt.match ? ["Yes,", "she's", "tired."] : ["No,", "she's", "not", "tired."]),
+    },
+    {
+      text: "Are they angry?",
+      img: { type: "pick", options: [{ emoji: "😠", match: true }, { emoji: "😄", match: false }] },
+      hint: (opt) => (opt.match ? ["Yes,", "they're", "angry."] : ["No,", "they", "aren't", "angry."]),
+    },
+    { text: "Are you hungry right now?", hint: yn(["Yes,", "I'm", "hungry."], ["No,", "I'm", "not", "hungry."]) },
+    // Unit 3 — can + teddy bear
+    { text: "Can you ride a bike?", hint: yn(["Yes,", "I", "can."], ["No,", "I", "can't."]) },
+    { text: "Can you skate?", hint: yn(["Yes,", "I", "can."], ["No,", "I", "can't."]) },
+    { text: "Can you play football?", hint: yn(["Yes,", "I", "can."], ["No,", "I", "can't."]) },
+    { text: "Can he swim?", img: "🏊", hint: yn(["Yes,", "he", "can."], ["No,", "he", "can't."]) },
+    { text: "Can she ride a horse?", img: "🏇", hint: yn(["Yes,", "she", "can."], ["No,", "she", "can't."]) },
+    {
+      text: "Is the teddy bear on the bed?",
+      img: { type: "scene", base: "🛏️", obj: "🧸", modes: ["on", "next", "under"] },
+      hint: (mode) => ({
+        on: ["Yes,", "it's", "on", "the", "bed."],
+        next: ["No,", "it's", "next", "to", "the", "bed."],
+        under: ["No,", "it's", "under", "the", "bed."],
+      }[mode]),
+    },
+    // Unit 4 — food
+    { text: "Have you got a milkshake?", img: "🥤", hint: yn(["Yes,", "I've", "got", "a", "milkshake."], ["No,", "I", "haven't", "got", "a", "milkshake."]) },
+    { text: "Have you got a pizza?", img: "🍕", hint: yn(["Yes,", "I've", "got", "a", "pizza."], ["No,", "I", "haven't", "got", "a", "pizza."]) },
+    { text: "Have you got a banana?", img: "🍌", hint: yn(["Yes,", "I've", "got", "a", "banana."], ["No,", "I", "haven't", "got", "a", "banana."]) },
+    { text: "Has he got a sandwich?", img: "🥪", hint: yn(["Yes,", "he's", "got", "a", "sandwich."], ["No,", "he", "hasn't", "got", "a", "sandwich."]) },
+    { text: "Has she got chicken?", img: "🍗", hint: yn(["Yes,", "she's", "got", "chicken."], ["No,", "she", "hasn't", "got", "chicken."]) },
+    // Unit 5 — school
+    { text: "Have we got English today?", hint: yn(["Yes,", "we've", "got", "English."], ["No,", "we", "haven't", "got", "English."]) },
+    { text: "Have you got PE on Monday?", hint: yn(["Yes,", "I've", "got", "PE", "on", "Monday."], ["No,", "I", "haven't", "got", "PE", "on", "Monday."]) },
+    { text: "Do you like Art?", hint: yn(["Yes,", "I", "do.", "I", "like", "Art."], ["No,", "I", "don't.", "I", "don't", "like", "Art."]) },
+    { text: "Is there a computer room in our school?", hint: yn(["Yes,", "there", "is."], ["No,", "there", "isn't."]) },
+    { text: "Is the playground big?", hint: yn(["Yes,", "it's", "big."], ["No,", "it", "isn't", "big."]) },
+    // Unit 6 — after school (do/does questions get the full two-clause answer)
+    { text: "Do you read a book after school?", hint: yn(["Yes,", "I", "do.", "I", "read", "a", "book", "after", "school."], ["No,", "I", "don't.", "I", "don't", "read", "a", "book", "after", "school."]) },
+    { text: "Do you watch TV in the evening?", hint: yn(["Yes,", "I", "do.", "I", "watch", "TV", "in", "the", "evening."], ["No,", "I", "don't.", "I", "don't", "watch", "TV", "in", "the", "evening."]) },
+    { text: "Do you play with friends on Sunday?", hint: yn(["Yes,", "I", "do.", "I", "play", "with", "friends", "on", "Sunday."], ["No,", "I", "don't.", "I", "don't", "play", "with", "friends", "on", "Sunday."]) },
+    { text: "Do you visit your grandma on Saturday?", hint: yn(["Yes,", "I", "do.", "I", "visit", "my", "grandma", "on", "Saturday."], ["No,", "I", "don't.", "I", "don't", "visit", "my", "grandma", "on", "Saturday."]) },
+    { text: "Do you write an email after school?", hint: yn(["Yes,", "I", "do.", "I", "write", "an", "email", "after", "school."], ["No,", "I", "don't.", "I", "don't", "write", "an", "email", "after", "school."]) },
+  ],
+
+  medium: [
+    // Unit 1
+    {
+      text: "What is this in my hand?",
+      img: { type: "pick", options: [
+        { emoji: "✏️", word: "a pencil" }, { emoji: "📏", word: "a ruler" },
+        { emoji: "🖍️", word: "a crayon" }, { emoji: "🖇️", word: "a paperclip" }, { emoji: "📕", word: "a book" },
+      ] },
+      hint: (opt) => ["It's", opt.word + "."],
+    },
+    {
+      text: "What are those on the table?",
+      img: { type: "pick", options: [
+        { emoji: "📚 ✏️", word: "a book and a pencil" },
+        { emoji: "🖍️ 📏", word: "a crayon and a ruler" },
+        { emoji: "📖 🖇️", word: "a book and a paperclip" },
+      ] },
+      hint: (opt) => ["They're", opt.word + "."],
+    },
+    {
+      text: "How many posters are there on the wall?",
+      img: { type: "repeat", emoji: "🖼️", min: 2, max: 6 },
+      hint: (n) => ["There", "are", numWord(n), "posters."],
+    },
+    {
+      text: "How many desks are there in our classroom?",
+      img: { type: "repeat", emoji: "🪑", min: 3, max: 8 },
+      hint: (n) => ["There", "are", numWord(n), "desks."],
+    },
+    {
+      text: "What color is that bag?",
+      img: { type: "color", emoji: "🎒" },
+      hint: (color) => ["It's", color + "."],
+    },
+    // Unit 2
+    { text: "How are you today?", hint: ["I'm", "fine,", "thank", "you."] },
+    { text: "How is your friend feeling today?", hint: ["He's", "happy."] },
+    { text: "Who is happy in the classroom?", hint: ["___", "is", "happy."] },
+    {
+      text: "Look at the picture: Is he brave or scared?",
+      img: { type: "pick", options: [
+        { emoji: "🦸", word: "brave" }, { emoji: "😱", word: "scared" },
+        { emoji: "🧗", word: "brave" }, { emoji: "🙈", word: "scared" },
+      ] },
+      hint: (opt) => ["He's", opt.word + "."],
+    },
+    { text: "What do you do when you are thirsty?", hint: ["I", "drink", "water."] },
+    // Unit 3
+    {
+      text: "Where is the bike?",
+      img: { type: "scene", base: "🌳", obj: "🚲", modes: ["behind", "infront", "next"] },
+      hint: (mode) => ({
+        behind: ["It's", "behind", "the", "tree."],
+        infront: ["It's", "in", "front", "of", "the", "tree."],
+        next: ["It's", "next", "to", "the", "tree."],
+      }[mode]),
+    },
+    {
+      text: "Where is the skateboard?",
+      img: { type: "scene", base: "🎒", obj: "🛹", modes: ["behind", "infront", "next"] },
+      hint: (mode) => ({
+        behind: ["It's", "behind", "the", "bag."],
+        infront: ["It's", "in", "front", "of", "the", "bag."],
+        next: ["It's", "next", "to", "the", "bag."],
+      }[mode]),
+    },
+    {
+      text: "Where is the ball?",
+      img: { type: "scene", base: "🪑", obj: "⚽", modes: ["behind", "infront", "next", "under"] },
+      hint: (mode) => ({
+        behind: ["It's", "behind", "the", "chair."],
+        infront: ["It's", "in", "front", "of", "the", "chair."],
+        next: ["It's", "next", "to", "the", "chair."],
+        under: ["It's", "under", "the", "chair."],
+      }[mode]),
+    },
+    { text: "What sport can you play?", hint: ["I", "can", "play", "football."] },
+    { text: "What can your friend do at the park?", img: "🏞️", hint: ["He", "can", "climb."] },
+    // Unit 4
+    { text: "What have you got in your lunchbox today?", hint: ["I've", "got", "a", "sandwich."] },
+    { text: "What is your favorite food?", hint: ["I", "like", "apples."] },
+    {
+      text: "How many grapes have you got?",
+      img: { type: "number", emoji: "🍇", options: [20, 30, 40, 50, 60, 70, 80, 90, 100] },
+      hint: (n) => ["I've", "got", numWord(n), "grapes."],
+    },
+    {
+      text: "What drink has she got?",
+      img: { type: "pick", options: [
+        { emoji: "🥤", word: "a milkshake" }, { emoji: "🧃", word: "juice" },
+        { emoji: "☕", word: "coffee" }, { emoji: "🍵", word: "tea" },
+      ] },
+      hint: (opt) => ["She's", "got", opt.word + "."],
+    },
+    {
+      text: "How many apples can you see?",
+      img: { type: "repeat", emoji: "🍎", min: 2, max: 6 },
+      hint: (n) => ["I", "can", "see", numWord(n), "apples."],
+    },
+    // Unit 5
+    { text: "What subjects have we got today?", hint: ["We've", "got", "Math", "and", "Art."] },
+    { text: "When have we got Music?", hint: ["We've", "got", "Music", "on", "Monday."] },
+    { text: "What do we do in the Art room?", img: "🎨", hint: ["We", "draw", "pictures."] },
+    { text: "What is your favorite school subject?", hint: ["I", "like", "PE."] },
+    { text: "Where do you play sports at school?", hint: ["I", "play", "on", "the", "sports", "field."] },
+    // Unit 6
+    { text: "What do you do after school?", hint: ["I", "watch", "TV."] },
+    { text: "What do you do on Monday?", hint: ["I", "play", "football."] },
+    { text: "What sports do you play after school?", hint: ["I", "play", "football", "and", "tennis."] },
+    { text: "Who do you visit on weekends?", hint: ["I", "visit", "my", "grandma."] },
+    { text: "What do you do with your family in the evening?", hint: ["We", "watch", "TV", "together."] },
+  ],
+
+  hard: [
+    // Unit 1
+    { text: "Point to something far from you and tell me: What is that / What are those?", hint: ["That's", "a", "window."] },
+    { text: "Describe your classroom: What things are near you and what are far?", hint: ["A", "pencil", "is", "near", "me."] },
+    { text: "How many boys and girls are there in the class today? Count them.", hint: ["There", "are", "twenty", "girls."] },
+    // Unit 2
+    { text: "Look at your classmate: How are they feeling and why?", hint: ["She's", "happy", "because", "it's", "sunny."] },
+    { text: "Tell me three feelings: How are you when it's sunny, rainy, or hot?", img: "☀️🌧️🔥", hint: ["I'm", "happy", "when", "it's", "sunny."] },
+    { text: "Are you brave? What can a brave boy/girl do?", hint: ["Yes,", "I'm", "brave.", "I", "can", "climb", "a", "tree."] },
+    // Unit 3
+    { text: "Tell me two things you can do and two things you can't do.", hint: ["I", "can", "swim,", "but", "I", "can't", "ride", "a", "horse."] },
+    { text: "Look around the room: Where is the pencil? (Use between, behind, in front of, next to.)", hint: ["It's", "next", "to", "the", "book."] },
+    { text: "Can your mom or dad ride a horse? What can they do?", hint: ["No,", "she", "can't.", "She", "can", "drive", "a", "car."] },
+    // Unit 4
+    { text: "Tell me three things you've got in your lunchbox and one thing you haven't got.", hint: ["I've", "got", "a", "sandwich,", "but", "I", "haven't", "got", "a", "banana."] },
+    { text: "Count by tens from 20 to 100! (20, 30, 40...)", img: "🔢", hint: ["Twenty,", "thirty,", "forty..."] },
+    { text: "What food has your friend got? Describe their lunch.", hint: ["He's", "got", "rice", "and", "chicken."] },
+    // Unit 5
+    { text: "Tell me about your school timetable on Tuesday.", hint: ["On", "Tuesday,", "I've", "got", "Math", "and", "PE."] },
+    { text: "What have we got in the computer room / gym / art room?", img: "💻🏋️🎨", hint: ["We've", "got", "computers."] },
+    { text: "Compare two school subjects: Which one do you like and which one don't you like?", hint: ["I", "like", "PE,", "but", "I", "don't", "like", "Math."] },
+    // Unit 6
+    { text: "Tell me three things you do after school and two things you don't do.", hint: ["I", "play", "football,", "but", "I", "don't", "watch", "TV."] },
+    { text: "What do you do on Saturday from morning to evening?", img: "🌅➡️☀️➡️🌆", hint: ["In", "the", "morning,", "I", "play", "football."] },
+    { text: "Do you listen to music or read books after school? Tell me about your favorite book/song.", img: "🎵📖", hint: ["I", "listen", "to", "music."] },
+  ],
+
+  // "text" is the broken sentence; hint is the corrected version, revealed word by word.
+  mistake: [
+    { text: "She have got a pizza.", hint: ["She", "has", "got", "a", "pizza."] },
+    { text: "I can plays tennis.", hint: ["I", "can", "play", "tennis."] },
+    { text: "He are happy.", hint: ["He", "is", "happy."] },
+    { text: "There is two books on the table.", hint: ["There", "are", "two", "books", "on", "the", "table."] },
+    { text: "She don't like Art.", hint: ["She", "doesn't", "like", "Art."] },
+    { text: "The ball is under of the chair.", hint: ["The", "ball", "is", "under", "the", "chair."] },
+    { text: "He can to swim.", hint: ["He", "can", "swim."] },
+    { text: "They is angry.", hint: ["They", "are", "angry."] },
+    { text: "Has you got a pen?", hint: ["Have", "you", "got", "a", "pen?"] },
+    { text: "We haves English today.", hint: ["We've", "got", "English", "today."] },
+    { text: "This is my pencils.", hint: ["These", "are", "my", "pencils."] },
+    { text: "Can she swims?", hint: ["Can", "she", "swim?"] },
+    { text: "Yes, I is happy.", hint: ["Yes,", "I'm", "happy."] },
+    { text: "He haven't got a sandwich.", hint: ["He", "hasn't", "got", "a", "sandwich."] },
+    { text: "What color is that bags?", hint: ["What", "color", "is", "that", "bag?"] },
+  ],
+
+  // No "text" here — the question is generated by shuffling these correct-order tokens.
+  order: [
+    { hint: ["I", "can", "play", "tennis."] },
+    { hint: ["I've", "got", "a", "milkshake."] },
+    { hint: ["The", "playground", "is", "big."] },
+    { hint: ["I'm", "happy", "today."] },
+    { hint: ["She", "can", "ride", "a", "horse."] },
+    { hint: ["We've", "got", "English", "today."] },
+    { hint: ["She's", "got", "chicken."] },
+    { hint: ["The", "bike", "is", "next", "to", "the", "tree."] },
+    { hint: ["I", "watch", "TV", "after", "school."] },
+    { hint: ["I", "visit", "my", "grandma."] },
+    { hint: ["My", "favorite", "subject", "is", "PE."] },
+    { hint: ["They're", "angry."] },
+    { hint: ["Have", "you", "got", "a", "pencil?"] },
+    { hint: ["He", "can", "swim."] },
+    { hint: ["Is", "this", "your", "desk?"] },
+  ],
+};
+
+const POINTS = { easy: 1, medium: 2, hard: 3, mistake: 2, order: 2 };
+const MODE_LABEL = {
+  easy: "EASY · 1⭐", medium: "MEDIUM · 2⭐⭐", hard: "HARD · 3⭐⭐⭐",
+  mistake: "FIND THE MISTAKE · 2⭐⭐", order: "WORD ORDER · 2⭐⭐",
+};
+const JAR_CAPACITY = 15;
+
+// ═══════════════════════ STATE ═══════════════════════
+let currentClass = null;
+let state = null; // { points, pool1, pool2, callCount, current }
+let currentMode = null;
+let lastQuestion = null;
+let currentHintTokens = [];
+let hintRevealed = 0;
+
+// Storage prefix stays "starTalk_" from the app's old name — renaming it would orphan
+// every class's saved points.
+function storageKey(cls) { return "starTalk_" + cls.replace("/", "_"); }
+
+function freshState() {
+  return {
+    points: 0,
+    pool1: Array.from({ length: 15 }, (_, i) => i + 1),   // students 1-15
+    pool2: Array.from({ length: 18 }, (_, i) => i + 16),  // students 16-33
+    callCount: 0,
+    current: null,
+  };
+}
+
+function loadState(cls) {
+  const raw = localStorage.getItem(storageKey(cls));
+  if (raw) {
+    try { return JSON.parse(raw); } catch (e) { /* fallthrough */ }
+  }
+  return freshState();
+}
+
+function saveState() {
+  localStorage.setItem(storageKey(currentClass), JSON.stringify(state));
+}
+
+// ═══════════════════════ NAV ═══════════════════════
+// Only the class being trialled is listed. Add "2/1" / "2/3" back here to bring them in —
+// each class keeps its own points and its own city under its own storage key.
+const CLASSES = ["2/2"];
+
+function openClass(cls) {
+  currentClass = cls;
+  state = loadState(cls);
+  document.getElementById("class-label").textContent = cls;
+  document.getElementById("settings-class-label").textContent = cls;
+  showScreen("screen-main");
+  resetToCallStage();
+  updateJarUI();
+  updateCalledCounter();
+}
+
+document.getElementById("btn-back").addEventListener("click", () => {
+  renderClassPicker();   // the class we just left may have earned upgrades
+  showScreen("screen-start");
+});
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+// ═══════════════════════ CALL STUDENT ═══════════════════════
+function currentPool() {
+  return state.callCount % 2 === 0 ? state.pool1 : state.pool2;
+}
+
+function refillPoolsIfNeeded() {
+  if (state.pool1.length === 0 && state.pool2.length === 0) {
+    state.pool1 = Array.from({ length: 15 }, (_, i) => i + 1);
+    state.pool2 = Array.from({ length: 18 }, (_, i) => i + 16);
+    showToast("🎉 Everyone's had a turn! New round starting.");
+    return true;
+  }
+  return false;
+}
+
+// Slot-machine style: fast ticks that gradually slow down, like a real spinner settling.
+const ROLL_DELAYS = [50, 50, 55, 60, 65, 75, 85, 95, 110, 130, 150, 170];
+
+document.getElementById("btn-call").addEventListener("click", () => {
+  refillPoolsIfNeeded();
+  let pool = currentPool();
+  if (pool.length === 0) {
+    // this half is empty, borrow from the other half so the class keeps moving
+    pool = state.pool1.length ? state.pool1 : state.pool2;
+  }
+  const idx = Math.floor(Math.random() * pool.length);
+  const chosen = pool[idx];
+
+  // switch to the student stage FIRST so the rolling number is actually visible,
+  // and hide the reroll/mode buttons until the roll finishes landing
+  document.getElementById("stage-call").classList.add("hidden");
+  document.getElementById("stage-question").classList.add("hidden");
+  document.getElementById("stage-student").classList.remove("hidden");
+  document.getElementById("btn-reroll").classList.add("hidden");
+  document.querySelector(".mode-picker").classList.add("hidden");
+
+  const display = document.getElementById("student-number");
+  display.classList.remove("landed");
+  display.classList.add("rolling");
+  display.textContent = "?";
+
+  function tick(i) {
+    display.textContent = Math.floor(Math.random() * 33) + 1;
+    playTick(i);
+    if (i < ROLL_DELAYS.length - 1) {
+      setTimeout(() => tick(i + 1), ROLL_DELAYS[i]);
+    } else {
+      setTimeout(land, ROLL_DELAYS[i]);
+    }
+  }
+
+  function land() {
+    pool.splice(idx, 1);
+    state.callCount++;
+    state.current = chosen;
+    display.textContent = chosen;
+    display.classList.remove("rolling");
+    display.classList.add("landed");
+    setTimeout(() => display.classList.remove("landed"), 600);
+    renderStudentId(chosen);
+    playReveal();
+    spawnSparklesAround(display);
+    saveState();
+    updateCalledCounter();
+    document.getElementById("btn-reroll").classList.remove("hidden");
+    document.querySelector(".mode-picker").classList.remove("hidden");
+  }
+
+  tick(0);
+});
+
+document.getElementById("btn-reroll").addEventListener("click", () => {
+  // put the current student back, pick someone else from the same half
+  const pool = state.callCount % 2 === 1 ? state.pool1 : state.pool2; // pool used last call
+  if (state.current !== null) pool.push(state.current);
+  const idx = Math.floor(Math.random() * pool.length);
+  const chosen = pool[idx];
+  pool.splice(idx, 1);
+  state.current = chosen;
+  const display = document.getElementById("student-number");
+  display.textContent = chosen;
+  display.classList.remove("landed");
+  void display.offsetWidth; // restart the bounce animation even if it just played
+  display.classList.add("landed");
+  setTimeout(() => display.classList.remove("landed"), 600);
+  renderStudentId(chosen);
+  playReveal();
+  spawnSparklesAround(display);
+  saveState();
+});
+
+function updateCalledCounter() {
+  const remaining = state.pool1.length + state.pool2.length;
+  const called = 33 - remaining;
+  document.getElementById("called-counter").textContent = `${called} / 33 called this round`;
+}
+
+// Shows the called student's avatar + name below their number, using roster.js if it's
+// loaded (see the <script src="roster.js"> tag above). Falls back to nothing — not an
+// error — when roster.js isn't present, so star-talk.html still works standalone.
+function renderStudentId(number) {
+  const el = document.getElementById("student-id");
+  if (typeof window.getStudent !== "function") { el.innerHTML = ""; return; }
+
+  const info = window.getStudent(currentClass, number);
+  const name = info && (info.nickname || info.first) ? (info.nickname || info.first) : "";
+  const photoHtml = info && info.photoUrl
+    ? `<img class="student-photo" src="${info.photoUrl}" alt="">`
+    : (() => {
+        const a = window.avatarFor ? window.avatarFor(currentClass, number) : null;
+        return a ? `<span class="student-avatar" style="background:${a.color}">${a.emoji}</span>` : "";
+      })();
+
+  el.innerHTML = photoHtml + (name ? `<span>${name}</span>` : "");
+}
+
+// ═══════════════════════ MODE + QUESTION ═══════════════════════
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentMode = btn.dataset.mode;
+    document.getElementById("question-badge").textContent = MODE_LABEL[currentMode];
+    newQuestion();
+    document.getElementById("stage-student").classList.add("hidden");
+    document.getElementById("stage-question").classList.remove("hidden");
+  });
+});
+
+function pickFrom(list) {
+  let q;
+  do { q = list[Math.floor(Math.random() * list.length)]; } while (list.length > 1 && q === lastQuestion);
+  lastQuestion = q;
+  return q;
+}
+
+// Word Order mode has no fixed "text" — the puzzle is a fresh shuffle of the
+// correct-order hint tokens every time, so nobody can just memorize the layout.
+function scrambleForOrder(tokens) {
+  const words = tokens.map((t) => t.replace(/[.?!]+$/, ""));
+  if (words.length < 2) return words.join(", ");
+  let shuffled;
+  do {
+    shuffled = [...words];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+  } while (shuffled.every((w, i) => w === words[i]));
+  return shuffled.join(", ");
+}
+
+function newQuestion() {
+  const item = pickFrom(QUIZ[currentMode]);
+  const text = currentMode === "order" ? scrambleForOrder(item.hint) : item.text;
+  document.getElementById("question-text").textContent = text;
+  const resolved = renderVisual(item.img);
+  currentHintTokens = typeof item.hint === "function" ? (item.hint(resolved) || []) : (item.hint || []);
+  hintRevealed = 0;
+  renderHint();
+}
+
+document.getElementById("btn-shuffle").addEventListener("click", newQuestion);
+document.getElementById("btn-hint").addEventListener("click", revealNextHintWord);
+document.getElementById("btn-hide-hint").addEventListener("click", hideHint);
+
+window.addEventListener("keydown", (e) => {
+  const isSpace = e.code === "Space" || e.key === " " || e.key === "Spacebar";
+  if (isSpace && !document.getElementById("stage-question").classList.contains("hidden")) {
+    e.preventDefault();
+    revealNextHintWord();
+  }
+}, true);
+
+document.getElementById("btn-correct").addEventListener("click", () => {
+  const pts = POINTS[currentMode];
+  state.points += pts;
+  saveState();
+  spawnFloatingStars(pts);
+  updateJarUI();
+  playDing();
+  setTimeout(resetToCallStage, 500);
+});
+
+document.getElementById("btn-skip").addEventListener("click", resetToCallStage);
+
+function resetToCallStage() {
+  document.getElementById("stage-question").classList.add("hidden");
+  document.getElementById("stage-student").classList.add("hidden");
+  document.getElementById("stage-call").classList.remove("hidden");
+}
+
+// ═══════════════════════ VISUAL AIDS ═══════════════════════
+// Returns a "resolved value" (color name / number / picked word / scene mode) so the
+// hint function can build a sentence that matches exactly what's shown on screen.
+function renderVisual(spec) {
+  const box = document.getElementById("question-visual");
+  if (!spec) { box.innerHTML = ""; box.classList.add("hidden"); return undefined; }
+  box.classList.remove("hidden");
+
+  if (typeof spec === "string") {
+    box.innerHTML = `<div class="emoji-visual">${spec}</div>`;
+    return undefined;
+  }
+  if (spec.type === "pick") {
+    const opt = spec.options[Math.floor(Math.random() * spec.options.length)];
+    box.innerHTML = `<div class="emoji-visual">${opt.emoji}</div>`;
+    return opt; // whole option, so hint() can read .word and/or .match
+  }
+  if (spec.type === "repeat") {
+    const n = spec.min + Math.floor(Math.random() * (spec.max - spec.min + 1));
+    box.innerHTML = `<div class="repeat-row">${Array(n).fill(`<span>${spec.emoji}</span>`).join("")}</div>`;
+    return n;
+  }
+  if (spec.type === "color") {
+    const c = COLOR_PALETTE[Math.floor(Math.random() * COLOR_PALETTE.length)];
+    const textColor = c.name === "yellow" ? "#111827" : "#fff";
+    box.innerHTML = `<div class="color-card" style="background:${c.hex};color:${textColor}">${spec.emoji}</div>`;
+    return c.name;
+  }
+  if (spec.type === "number") {
+    const n = spec.options[Math.floor(Math.random() * spec.options.length)];
+    box.innerHTML = `<div class="number-card"><span class="number-emoji">${spec.emoji}</span><span class="number-value">${n}</span></div>`;
+    return n;
+  }
+  if (spec.type === "scene") {
+    const mode = spec.modes[Math.floor(Math.random() * spec.modes.length)];
+    const P = SCENE_POS[mode];
+    box.innerHTML = `
+      <div class="scene-box">
+        <span class="scene-emoji" style="top:${P.baseTop};left:50%;font-size:3.4rem;z-index:${P.baseZ};transform:translate(-50%,-50%);">${spec.base}</span>
+        <span class="scene-emoji" style="top:${P.objTop};left:${P.objLeft};font-size:${3.4 * P.objScale}rem;z-index:${P.objZ};transform:translate(-50%,-50%);">${spec.obj}</span>
+      </div>`;
+    return mode;
+  }
+  box.innerHTML = "";
+  box.classList.add("hidden");
+  return undefined;
+}
+
+// ═══════════════════════ SENTENCE HINT ═══════════════════════
+function renderHint() {
+  const row = document.getElementById("hint-row");
+  if (!currentHintTokens.length) { row.innerHTML = ""; row.classList.add("hidden"); return; }
+  row.classList.remove("hidden");
+  row.innerHTML = currentHintTokens.map((tok, i) =>
+    i < hintRevealed
+      ? `<span class="hint-chip revealed">${tok}</span>`
+      : `<span class="hint-chip">···</span>`
+  ).join("");
+}
+
+function revealNextHintWord() {
+  if (document.getElementById("stage-question").classList.contains("hidden")) return;
+  if (!currentHintTokens.length) return;
+  if (hintRevealed < currentHintTokens.length) {
+    hintRevealed++;
+    renderHint();
+  }
+}
+
+function hideHint() {
+  hintRevealed = 0;
+  renderHint();
+}
+
+
+// ═══════════════════════ ECO-CITY (shared class goal) ═══════════════════════
+// One full jar (JAR_CAPACITY points) unlocks one city upgrade; ten upgrades finish a city
+// and a fresh polluted one takes its place. Everything here is derived from state.points,
+// so no new saved field is needed and classes that already have points keep their progress.
+const CITY_UPGRADES = [
+  { flag: "trash-gone", emoji: "🗑️", label: "Trash cleaned up!" },
+  { flag: "tree-on",    emoji: "🌳", label: "Trees planted!" },
+  { flag: "park-on",    emoji: "🏞️", label: "The park is green!" },
+  { flag: "river-on",   emoji: "🌊", label: "The river is clean!" },
+  { flag: "flower-on",  emoji: "🌸", label: "Flowers are blooming!" },
+  { flag: "bike-on",    emoji: "🚲", label: "A bike lane for the city!" },
+  { flag: "bin-on",     emoji: "♻️", label: "Recycling bins!" },
+  { flag: "solar-on",   emoji: "☀️", label: "Solar panels on the roofs!" },
+  { flag: "turbine-on", emoji: "💨", label: "Wind turbines on the hills!" },
+  { flag: "city-clean", emoji: "🌈", label: "The smog is gone — Eco-City complete!" },
+];
+const UPGRADES_PER_CITY = CITY_UPGRADES.length;
+
+// points defaults to the open class, but any class's total can be passed in (start screen).
+// `state` is still null before a class is opened — demo mode runs from the start screen too.
+function openPoints() { return state ? state.points : 0; }
+function totalUpgrades(points = openPoints()) { return Math.floor(points / JAR_CAPACITY); }
+function citiesBuilt(points = openPoints())   { return Math.floor(totalUpgrades(points) / UPGRADES_PER_CITY); }
+
+// 0 = untouched polluted city, 10 = finished city still on screen.
+// The 10th upgrade keeps the finished city up; the 11th starts the next one at level 1.
+function cityLevel(points = openPoints()) {
+  const t = totalUpgrades(points);
+  return t === 0 ? 0 : ((t - 1) % UPGRADES_PER_CITY) + 1;
+}
+
+// Start screen: show every class where its own city stands right now.
+// Builds the start-screen button(s) from CLASSES, each one showing where that class's city
+// stands right now. The click handler is attached to the button as it is created, so the
+// button and its behaviour can never get out of sync.
+function renderClassPicker() {
+  document.getElementById("goal-text").innerHTML =
+    `Every good answer earns stars. ${JAR_CAPACITY} ⭐ fill the jar,<br>` +
+    `and a full jar makes our city greener.<br>` +
+    `<strong>${UPGRADES_PER_CITY} upgrades = a clean Eco-City!</strong>`;
+
+  const picker = document.getElementById("class-picker");
+  picker.innerHTML = "";
+
+  CLASSES.forEach(cls => {
+    const points = loadState(cls).points || 0;
+    const built = citiesBuilt(points);
+    const btn = document.createElement("button");
+    btn.className = "class-btn";
+    btn.innerHTML =
+      `<span class="class-name">${cls}</span>` +
+      `<span class="class-progress">` +
+        `<span class="lvl">🏙️ ${cityLevel(points)}/${UPGRADES_PER_CITY}${built > 0 ? ` · 🏆 ${built}` : ""}</span>` +
+        `<span class="pts">${points} ⭐</span>` +
+      `</span>` +
+      `<span class="class-go">▶ Start the lesson</span>`;
+    btn.addEventListener("click", () => openClass(cls));
+    picker.appendChild(btn);
+  });
+}
+
+function applyCityLayers(level) {
+  if (level === undefined) level = cityLevel();
+  const svg = document.getElementById("cityscape");
+  CITY_UPGRADES.forEach((u, i) => svg.classList.toggle(u.flag, i < level));
+  document.getElementById("city-bar-fill").style.width = (level / UPGRADES_PER_CITY) * 100 + "%";
+  document.getElementById("city-level-text").textContent = "Level " + level + "/" + UPGRADES_PER_CITY;
+  const built = inDemo() ? 0 : citiesBuilt();   // a demo run has no completed cities behind it
+  document.getElementById("city-built-text").textContent = built > 0 ? "🏆 Cities built: " + built : "";
+}
+
+function openCity() {
+  document.getElementById("city-banner").classList.add("hidden");
+  document.getElementById("city-overlay").classList.remove("hidden");
+  applyCityLayers();
+}
+
+function closeCity() {
+  if (inDemo()) endDemo();
+  document.getElementById("city-overlay").classList.add("hidden");
+  document.getElementById("city-banner").classList.add("hidden");
+}
+
+// n = number of completed jars = total upgrades earned so far.
+function celebrateCityUpgrade(n) {
+  const level = cityLevel();
+  const upgrade = CITY_UPGRADES[level - 1];
+  const banner = document.getElementById("city-banner");
+
+  banner.classList.add("hidden");
+  document.getElementById("city-overlay").classList.remove("hidden");
+  applyCityLayers(level - 1);   // show the city as it was, so the new layer can animate in
+
+  setTimeout(() => {
+    applyCityLayers(level);
+    playFanfare();
+    const startingOver = level === 1 && citiesBuilt() > 0;
+    banner.innerHTML = startingOver
+      ? '<span class="city-banner-emoji">' + upgrade.emoji + '</span> A new city needs your help!<small>' + upgrade.label + '</small>'
+      : '<span class="city-banner-emoji">' + upgrade.emoji + '</span> ' + upgrade.label;
+    banner.classList.remove("hidden");
+    if (level === UPGRADES_PER_CITY) {
+      burstConfetti();
+      setTimeout(burstConfetti, 700);
+      setTimeout(burstConfetti, 1400);
+    }
+  }, 500);
+}
+
+function playFanfare() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "triangle";
+    const t = ctx.currentTime + i * 0.12;
+    o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.22, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t + 0.2);
+  });
+}
+
+document.getElementById("btn-city").addEventListener("click", openCity);
+document.getElementById("btn-close-city").addEventListener("click", closeCity);
+
+// ═══════════════════════ DEMO MODE (for showing the project) ═══════════════════════
+// Walks the city through its 10 upgrades on demand. It only ever passes an explicit level to
+// applyCityLayers and never calls saveState(), so a demo run cannot touch a class's real points.
+// Open it from Settings, or straight from a link: star-talk.html?demo
+let demoLevel = null;      // null = not demoing; 0-10 = the level being shown
+let demoTimer = null;
+
+function inDemo() { return demoLevel !== null; }
+
+function startDemo() {
+  stopDemoPlayback();
+  demoLevel = 0;
+  document.getElementById("settings-modal").classList.add("hidden");
+  document.getElementById("demo-bar").classList.remove("hidden");
+  document.getElementById("demo-badge").classList.remove("hidden");
+  document.getElementById("city-overlay").classList.remove("hidden");
+  renderDemo(false);
+}
+
+// Tears the demo down without closing the overlay (closeCity does that part).
+function endDemo() {
+  stopDemoPlayback();
+  demoLevel = null;
+  document.getElementById("demo-bar").classList.add("hidden");
+  document.getElementById("demo-badge").classList.add("hidden");
+  applyCityLayers();   // back to whatever the real class city is
+}
+
+function renderDemo(announce) {
+  applyCityLayers(demoLevel);
+  const banner = document.getElementById("city-banner");
+  if (announce && demoLevel > 0) {
+    const u = CITY_UPGRADES[demoLevel - 1];
+    banner.innerHTML = `<span class="city-banner-emoji">${u.emoji}</span> ${u.label}`;
+    banner.classList.remove("hidden");
+    playFanfare();
+    if (demoLevel === UPGRADES_PER_CITY) burstConfetti();
+  } else {
+    banner.classList.add("hidden");
+  }
+}
+
+function demoStep(delta) {
+  stopDemoPlayback();
+  const next = Math.min(UPGRADES_PER_CITY, Math.max(0, demoLevel + delta));
+  const moved = next !== demoLevel;
+  demoLevel = next;
+  renderDemo(moved && delta > 0);
+}
+
+function playDemo() {
+  stopDemoPlayback();
+  demoLevel = 0;
+  renderDemo(false);
+  demoTimer = setInterval(() => {
+    if (demoLevel >= UPGRADES_PER_CITY) { stopDemoPlayback(); return; }
+    demoLevel++;
+    renderDemo(true);
+  }, 2200);   // long enough for each layer's animation to finish before the next one
+}
+
+function stopDemoPlayback() {
+  if (demoTimer) { clearInterval(demoTimer); demoTimer = null; }
+}
+
+document.getElementById("btn-demo").addEventListener("click", startDemo);
+document.getElementById("demo-play").addEventListener("click", playDemo);
+document.getElementById("demo-next").addEventListener("click", () => demoStep(1));
+document.getElementById("demo-prev").addEventListener("click", () => demoStep(-1));
+document.getElementById("demo-reset").addEventListener("click", () => { stopDemoPlayback(); demoLevel = 0; renderDemo(false); });
+document.getElementById("demo-exit").addEventListener("click", closeCity);
+
+// Arrow keys drive the demo — most presentation remotes send exactly these.
+window.addEventListener("keydown", (e) => {
+  if (!inDemo()) return;
+  if (e.key === "ArrowRight") { e.preventDefault(); demoStep(1); }
+  if (e.key === "ArrowLeft")  { e.preventDefault(); demoStep(-1); }
+});
+
+if (location.search.includes("demo")) startDemo();
+
+// ═══════════════════════ JAR / POINTS UI ═══════════════════════
+// Each completed jar advances to the next color in this cycle, so kids can see
+// at a glance which "round" the class is on, not just the star count.
+const JAR_COLORS = [
+  { name: "Gold", from: "#fde68a", to: "#fbbf24" },
+  { name: "Teal", from: "#99f6e4", to: "#2dd4bf" },
+  { name: "Pink", from: "#fbcfe8", to: "#f472b6" },
+  { name: "Purple", from: "#ddd6fe", to: "#a78bfa" },
+  { name: "Green", from: "#bbf7d0", to: "#4ade80" },
+  { name: "Orange", from: "#fed7aa", to: "#fb923c" },
+];
+
+function updateJarUI() {
+  const jarsCompleted = Math.floor(state.points / JAR_CAPACITY);
+  const remainder = state.points % JAR_CAPACITY;
+  const fillPct = (remainder / JAR_CAPACITY) * 100;
+  const color = JAR_COLORS[jarsCompleted % JAR_COLORS.length];
+
+  document.getElementById("jar").style.borderColor = color.to;
+  const fillEl = document.getElementById("jar-fill");
+  fillEl.style.height = fillPct + "%";
+  fillEl.style.background = `linear-gradient(180deg, ${color.from}, ${color.to})`;
+  document.getElementById("jar-total").textContent = state.points + " ⭐";
+  document.getElementById("jar-total").style.color = color.to;
+  const built = citiesBuilt();
+  document.getElementById("jar-badges").innerHTML =
+    `🏙️ ${cityLevel()}/${UPGRADES_PER_CITY}` + (built > 0 ? ` · 🏆 ${built}` : "");
+
+  if (state._lastJars === undefined) state._lastJars = jarsCompleted;
+  const unlockedUpgrade = jarsCompleted > state._lastJars;
+  state._lastJars = jarsCompleted;
+
+  // On an upgrade the celebration owns the city animation; otherwise just keep it in sync
+  // (class switch, points reset).
+  if (unlockedUpgrade) celebrateJar(jarsCompleted);
+  else applyCityLayers();
+}
+
+function celebrateJar(n) {
+  const justFilled = JAR_COLORS[(n - 1) % JAR_COLORS.length].name;
+  const next = JAR_COLORS[n % JAR_COLORS.length].name;
+  showToast(`🎉 ${justFilled} jar full! Next up: the ${next} jar!`);
+  burstConfetti();
+  celebrateCityUpgrade(n);   // a full jar buys one upgrade for the class city
+}
+
+function spawnFloatingStars(count) {
+  const rect = document.getElementById("btn-correct").getBoundingClientRect();
+  for (let i = 0; i < count; i++) {
+    const star = document.createElement("div");
+    star.className = "float-star";
+    star.textContent = "⭐";
+    star.style.left = (rect.left + rect.width / 2 + (Math.random() * 60 - 30)) + "px";
+    star.style.top = rect.top + "px";
+    document.body.appendChild(star);
+    setTimeout(() => star.remove(), 1200);
+  }
+}
+
+function burstConfetti() {
+  const emojis = ["🎉", "⭐", "✨", "🎊"];
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    piece.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    piece.style.left = Math.random() * 100 + "vw";
+    piece.style.animationDuration = (1.5 + Math.random() * 1.5) + "s";
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 3200);
+  }
+}
+
+function showToast(msg) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.getElementById("toast-container").appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+
+// tiny WebAudio sounds, no external files — one shared context, reused everywhere
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+
+function playDing() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = "sine";
+  o.frequency.setValueAtTime(880, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.15);
+  g.gain.setValueAtTime(0.2, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(); o.stop(ctx.currentTime + 0.3);
+}
+
+// short rising blip played on every roll tick — pitch climbs a little each time to build anticipation
+function playTick(i) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = "square";
+  o.frequency.setValueAtTime(500 + i * 18, ctx.currentTime);
+  g.gain.setValueAtTime(0.1, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(); o.stop(ctx.currentTime + 0.06);
+}
+
+// cheerful 3-note chime played when the randomizer lands on a student
+function playReveal() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  [523.25, 659.25, 783.99].forEach((freq, i) => {
+    const t0 = ctx.currentTime + i * 0.09;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0.001, t0);
+    g.gain.linearRampToValueAtTime(0.22, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.28);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t0); o.stop(t0 + 0.3);
+  });
+}
+
+// little sparkle burst around any element (used when a student is called)
+function spawnSparklesAround(el) {
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const emojis = ["✨", "⭐", "🎉"];
+  for (let i = 0; i < 10; i++) {
+    const s = document.createElement("div");
+    s.className = "float-star";
+    s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 70;
+    s.style.left = (cx + Math.cos(angle) * dist) + "px";
+    s.style.top = (cy + Math.sin(angle) * dist) + "px";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1200);
+  }
+}
+
+// ═══════════════════════ SETTINGS ═══════════════════════
+document.getElementById("btn-settings").addEventListener("click", () => {
+  document.getElementById("settings-modal").classList.remove("hidden");
+});
+document.getElementById("btn-close-settings").addEventListener("click", () => {
+  document.getElementById("settings-modal").classList.add("hidden");
+});
+document.getElementById("btn-reset-round").addEventListener("click", () => {
+  state.pool1 = Array.from({ length: 15 }, (_, i) => i + 1);
+  state.pool2 = Array.from({ length: 18 }, (_, i) => i + 16);
+  saveState();
+  updateCalledCounter();
+  showToast("🔁 Round reset — everyone can be called again.");
+  document.getElementById("settings-modal").classList.add("hidden");
+});
+document.getElementById("btn-reset-points").addEventListener("click", () => {
+  if (confirm("Reset " + currentClass + "'s points to zero?")) {
+    state.points = 0;
+    state._lastJars = 0;
+    saveState();
+    updateJarUI();
+    document.getElementById("settings-modal").classList.add("hidden");
+  }
+});
+
+renderClassPicker();
+</script>
+</body>
+</html>
