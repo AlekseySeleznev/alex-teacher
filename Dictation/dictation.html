@@ -17,12 +17,23 @@
 
         <h1 id="welcome-title" class="good-luck-text">Good Luck! 🍀</h1>
 
-        <div class="button-group">
+        <div class="button-group" style="margin-top: 0;">
             <button onclick="startDictation()">Start Dictation</button>
             <button class="btn-secondary" onclick="startDirectCheck()">Go to Checking</button>
         </div>
 
-        <div style="margin-top: 40px;">
+        <div class="sound-row">
+            <button id="btn-mute" class="btn-text" onclick="toggleMute()" aria-label="Sound on or off">🔊</button>
+            <input id="volume" type="range" min="0" max="100" value="60" aria-label="Volume">
+            <label><input id="ambient" type="checkbox"> 🌧 Calm background</label>
+        </div>
+
+        <p class="key-hint">
+            Space: pause / next step &nbsp;·&nbsp; ← → : words &nbsp;·&nbsp; S: spell &nbsp;·&nbsp; M: sound &nbsp;·&nbsp; F: full screen &nbsp;·&nbsp; Esc: menu<br>
+            Move the mouse to show the buttons
+        </p>
+
+        <div style="margin-top: 14px;">
             <button class="btn-text" onclick="window.location.href='index.html'">Back to Menu</button>
         </div>
     </div>
@@ -33,13 +44,8 @@
         <div class="progress-container">
             <div id="timer-bar" class="progress-bar"></div>
         </div>
-        <div id="dictation-counter" class="counter">Word 1 of 10</div>
+        <div id="dictation-dots" class="dots" role="img" aria-label="Word 1 of 10"></div>
         <div id="pause-note" class="hidden">⏸ Paused — press Space to continue</div>
-
-        <div class="nav-arrows" style="display: none;">
-            <button id="dict-prev" onclick="prevDictationWord()">←</button>
-            <button id="dict-next" onclick="nextDictationWord()">→</button>
-        </div>
     </div>
 
     <div id="screen-pencils-down" class="container hidden" onclick="skipPencilsDown()">
@@ -57,7 +63,7 @@
             <button id="btn-reroll" class="btn-reroll hidden" onclick="rollStudent()">Reroll</button>
             <button id="btn-confirm-student" class="btn-ok hidden" onclick="confirmStudent()">OK</button>
         </div>
-        <div id="check-student-counter" class="counter">Word 1 of 10</div>
+        <div id="check-student-dots" class="dots" role="img" aria-label="Word 1 of 10"></div>
     </div>
 
     <div id="screen-check-word" class="container wide hidden">
@@ -66,13 +72,10 @@
         <div id="check-fallback" class="picture-fallback hidden"></div>
         <div id="answer-display" class="answer-text"></div>
 
+        <!-- One main button: Show the Answer → Next Word (Space does the same) -->
         <div class="button-group">
-            <button id="btn-answer" onclick="showAnswer()">Show the Answer</button>
-        </div>
-
-        <div class="nav-arrows" style="display: none;">
-            <button id="check-prev" onclick="prevCheckWord()">←</button>
-            <button id="check-next" onclick="nextCheckWord()">→</button>
+            <button id="btn-answer" onclick="mainCheckAction()">Show the Answer</button>
+            <button id="btn-spell" class="btn-secondary hidden" onclick="spellAnswer()">Spell it 🔤</button>
         </div>
     </div>
 
@@ -85,10 +88,20 @@
         </div>
     </div>
 
+    <!-- Appears when the mouse moves, hides itself after a moment -->
+    <div id="toolbar" class="hidden" role="toolbar" aria-label="Controls">
+        <button id="tb-prev" onclick="goPrev()" aria-label="Previous word" title="Previous (←)">◀</button>
+        <button id="tb-pause" onclick="togglePause()" aria-label="Pause" title="Pause (Space)">⏸</button>
+        <button id="tb-next" onclick="goNext()" aria-label="Next word" title="Next (→)">▶</button>
+        <button id="tb-sound" onclick="toggleMute()" aria-label="Sound on or off" title="Sound (M)">🔊</button>
+        <button id="tb-full" onclick="toggleFullscreen()" aria-label="Full screen" title="Full screen (F)">⛶</button>
+    </div>
+    <div id="toast"></div>
+
     <audio id="focus-chime" src="audio/chime.mp3" preload="auto"></audio>
-    <audio id="transition-sound" src="audio/transition.mp3" preload="auto"></audio>
 
     <script src="js/data.js"></script>
+    <script src="js/sound.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

@@ -13,19 +13,25 @@ const TOTAL_WORDS = wordsList.length;
 const TIME_PER_WORD = 25;            // seconds
 const LOW_TIME_MS = 5000;            // bar turns warm in the last 5 seconds
 const PENCILS_DOWN_MS = 3500;        // how long "Pencils down!" stays on screen
+const SPELL_STEP_MS = 700;           // pause between spelled letters
+const TOOLBAR_SCREENS = ['screen-dictation', 'screen-check-student', 'screen-check-word'];
 
 let currentWordIndex = 0;
 let activeScreen = 'screen-welcome';
 let group1 = []; // Students 1-15
 let group2 = []; // Students 16-33
+let studentForWord = {};   // word index -> student chosen for it (so ← → never re-rolls)
 
 // Timer state (timestamp based, so it never drifts)
 let timerInterval = null;
 let wordDeadline = 0;
 let remainingMs = 0;
 let isPaused = false;
+let lowWarned = false;
 let pencilsTimeout = null;
 let isRolling = false;
+let answerShown = false;
+let spellTimer = null;
 
 // Helper function to build the correct image path for standard units and final test
 function getImagePath(index) {
@@ -39,6 +45,13 @@ function preloadImages() {
         const img = new Image();
         img.src = getImagePath(i);
     }
+}
+
+// Restart a CSS animation on an element
+function restartAnimation(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
 }
 
 // Shows the picture for a word. If the file is missing and the unit has an
@@ -57,17 +70,27 @@ function showPicture(imgId, fallbackId, index) {
             img.classList.add('hidden');
             fallback.textContent = emoji;
             fallback.classList.remove('hidden');
+            restartAnimation(fallback, 'swap');
         }
     };
+    restartAnimation(img, 'swap');
     img.src = getImagePath(index);
 }
 
-function playSound(id) {
+// Row of dots: finished words, the current word, words still to come
+function renderDots(id) {
     const el = document.getElementById(id);
-    if (el) {
-        el.currentTime = 0;
-        el.play().catch(err => console.log("Audio play blocked by browser:", err));
+    if (el.children.length !== TOTAL_WORDS) {
+        el.innerHTML = '';
+        for (let i = 0; i < TOTAL_WORDS; i++) {
+            const dot = document.createElement('div');
+            el.appendChild(dot);
+        }
     }
+    Array.from(el.children).forEach((dot, i) => {
+        dot.className = 'dot' + (i < currentWordIndex ? ' done' : (i === currentWordIndex ? ' current' : ''));
+    });
+    el.setAttribute('aria-label', `Word ${currentWordIndex + 1} of ${TOTAL_WORDS}`);
 }
 
 // Helper function to build the date in "Thursday 26th March 2026" format
@@ -100,6 +123,48 @@ document.getElementById('welcome-subtitle').innerText = currentUnit.title;
 document.getElementById('date-display').innerText = getFormattedDate();
 preloadImages();
 
+// --- SOUND CONTROLS ---
+function updateMuteUI() {
+    const icon = Sound.isMuted() ? '🔇' : '🔊';
+    document.getElementById('btn-mute').textContent = icon;
+    document.getElementById('tb-sound').textContent = icon;
+}
+
+function showToast(text) {
+    const toast = document.getElementById('toast');
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove('show'), 1400);
+}
+
+function toggleMute() {
+    Sound.setMuted(!Sound.isMuted());
+    updateMuteUI();
+    showToast(Sound.isMuted() ? '🔇 Sound off' : '🔊 Sound on');
+    if (!Sound.isMuted()) Sound.preview();
+}
+
+function toggleFullscreen() {
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+}
+
+const volumeInput = document.getElementById('volume');
+const ambientInput = document.getElementById('ambient');
+volumeInput.value = Math.round(Sound.getVolume() * 100);
+ambientInput.checked = Sound.isAmbientOn();
+volumeInput.addEventListener('input', () => Sound.setVolume(volumeInput.value / 100));
+volumeInput.addEventListener('change', () => { Sound.preview(); volumeInput.blur(); });
+ambientInput.addEventListener('change', () => {
+    Sound.setAmbientEnabled(ambientInput.checked);
+    ambientInput.blur();
+});
+updateMuteUI();
+
 // A clicked button must not keep keyboard focus, otherwise Space/Enter
 // would trigger it a second time
 document.addEventListener('click', (e) => {
@@ -107,23 +172,76 @@ document.addEventListener('click', (e) => {
     if (btn) btn.blur();
 });
 
+// --- FLOATING TOOLBAR + HIDDEN MOUSE ---
+const toolbar = document.getElementById('toolbar');
+let toolbarTimer = null;
+let cursorTimer = null;
+
+function showToolbar(ms) {
+    if (!TOOLBAR_SCREENS.includes(activeScreen)) return;
+    toolbar.classList.add('show');
+    clearTimeout(toolbarTimer);
+    toolbarTimer = setTimeout(() => toolbar.classList.remove('show'), ms);
+}
+
+function scheduleCursorHide() {
+    clearTimeout(cursorTimer);
+    document.body.classList.remove('hide-cursor');
+    if (activeScreen === 'screen-dictation') {
+        cursorTimer = setTimeout(() => {
+            if (!toolbar.matches(':hover')) document.body.classList.add('hide-cursor');
+        }, 2000);
+    }
+}
+
+document.addEventListener('mousemove', () => { showToolbar(2500); scheduleCursorHide(); });
+document.addEventListener('touchstart', () => showToolbar(3500), { passive: true });
+
+function updateToolbar() {
+    document.getElementById('tb-prev').disabled = (currentWordIndex === 0);
+    document.getElementById('tb-pause').classList.toggle('hidden', activeScreen !== 'screen-dictation');
+}
+
+function goPrev() {
+    if (activeScreen === 'screen-dictation') {
+        prevDictationWord();
+    } else if (!isRolling && (activeScreen === 'screen-check-student' || activeScreen === 'screen-check-word')) {
+        prevCheckWord();
+    }
+}
+
+function goNext() {
+    if (activeScreen === 'screen-dictation') {
+        nextDictationWord();
+    } else if (activeScreen === 'screen-check-word') {
+        nextCheckWord();
+    } else if (activeScreen === 'screen-check-student' && !isRolling && currentWordIndex < TOTAL_WORDS - 1) {
+        nextCheckWord();   // never jump to the finish screen from the roller by accident
+    }
+}
+
 // --- KEYBOARD / PRESENTATION REMOTE ---
 // ←/→ or PageUp/PageDown : previous / next word
-// Space                   : pause (dictation), roll / OK (student), show answer (check)
-// Enter                   : same as Space on every screen except dictation
-// Esc                     : back to the menu
+// Space or Enter          : the one "main" action of the screen
+//                           dictation: pause · roller: roll, then OK · check: show answer, then next word
+// R reroll · S spell the word · M sound · F full screen · Esc menu
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // Don't steal keys from the volume slider or the checkbox
+    if (e.target && e.target.tagName === 'INPUT' && e.key !== 'Escape') return;
 
-    const isSpace = (e.key === ' ' || e.code === 'Space');
-    const isPrev = (e.key === 'ArrowLeft' || e.key === 'PageUp');
-    const isNext = (e.key === 'ArrowRight' || e.key === 'PageDown');
-    const isEnter = (e.key === 'Enter');
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    const isSpace = (key === ' ' || e.code === 'Space');
+    const isPrev = (key === 'ArrowLeft' || key === 'PageUp');
+    const isNext = (key === 'ArrowRight' || key === 'PageDown');
+    const isEnter = (key === 'Enter');
 
-    if (isSpace || isPrev || isNext || isEnter || e.key === 'Escape') e.preventDefault();
+    if (isSpace || isPrev || isNext || isEnter || key === 'Escape') e.preventDefault();
     if (e.repeat) return;
 
-    if (e.key === 'Escape') { requestExit(); return; }
+    if (key === 'Escape') { requestExit(); return; }
+    if (key === 'm') { toggleMute(); return; }
+    if (key === 'f') { toggleFullscreen(); return; }
 
     switch (activeScreen) {
         case 'screen-welcome':
@@ -141,19 +259,24 @@ document.addEventListener('keydown', (e) => {
             break;
 
         case 'screen-check-student':
-            if (isSpace || isEnter) {
+            if (isPrev || isNext) {
+                if (isPrev) goPrev(); else goNext();
+            } else if (isSpace || isEnter) {
                 if (!document.getElementById('btn-confirm-student').classList.contains('hidden')) {
                     confirmStudent();
                 } else if (!isRolling) {
                     rollStudent();
                 }
+            } else if (key === 'r' && !document.getElementById('btn-reroll').classList.contains('hidden')) {
+                rollStudent();
             }
             break;
 
         case 'screen-check-word':
             if (isPrev) prevCheckWord();
             else if (isNext) nextCheckWord();
-            else if (isSpace || isEnter) showAnswer();
+            else if (isSpace || isEnter) mainCheckAction();
+            else if (key === 's') spellAnswer();
             break;
     }
 });
@@ -176,6 +299,7 @@ function requestExit() {
 function initStudents() {
     group1 = Array.from({length: 15}, (_, i) => i + 1);      // Students 1-15
     group2 = Array.from({length: 18}, (_, i) => i + 16);     // Students 16-33
+    studentForWord = {};
 }
 
 // Returns the current pool based on word index (odd words = group1, even words = group2)
@@ -199,14 +323,11 @@ function showScreen(screenId) {
 
     document.getElementById(screenId).classList.remove('hidden');
     activeScreen = screenId;
-}
 
-function updateArrows(prevBtnId, nextBtnId) {
-    const prevBtn = document.getElementById(prevBtnId);
-    const nextBtn = document.getElementById(nextBtnId);
-
-    if (prevBtn) prevBtn.disabled = (currentWordIndex === 0);
-    if (nextBtn) nextBtn.disabled = (currentWordIndex === TOTAL_WORDS - 1);
+    toolbar.classList.remove('show');
+    toolbar.classList.toggle('hidden', !TOOLBAR_SCREENS.includes(screenId));
+    updateToolbar();
+    scheduleCursorHide();
 }
 
 // --- TIMER ---
@@ -216,14 +337,15 @@ function stopTimer() {
 }
 
 function setPausedUI(paused) {
-    const bar = document.getElementById('timer-bar');
-    bar.classList.toggle('paused', paused);
+    document.getElementById('timer-bar').classList.toggle('paused', paused);
     document.getElementById('pause-note').classList.toggle('hidden', !paused);
+    document.getElementById('tb-pause').textContent = paused ? '⏯' : '⏸';
 }
 
 function startWordTimer() {
     stopTimer();
     isPaused = false;
+    lowWarned = false;
     setPausedUI(false);
     remainingMs = TIME_PER_WORD * 1000;
     wordDeadline = Date.now() + remainingMs;
@@ -241,6 +363,11 @@ function tick() {
     if (isPaused) return;
     const left = Math.max(0, wordDeadline - Date.now());
     renderTimer(left);
+
+    if (left <= LOW_TIME_MS && left > 0 && !lowWarned) {
+        lowWarned = true;
+        Sound.low();
+    }
 
     if (left <= 0) {
         stopTimer();
@@ -268,13 +395,15 @@ function resumeTimer() {
 }
 
 function togglePause() {
-    if (isPaused) resumeTimer();
-    else pauseTimer();
+    if (activeScreen !== 'screen-dictation') return;
+    if (isPaused) { resumeTimer(); Sound.resume(); }
+    else { pauseTimer(); Sound.pause(); }
 }
 
 // --- PHASE 1: DICTATION ---
 function startDictation() {
-    playSound('focus-chime');
+    Sound.chime();
+    Sound.ambientStart();
 
     initStudents();
     currentWordIndex = 0;
@@ -284,10 +413,9 @@ function startDictation() {
 
 function loadDictationWord(withSound) {
     showPicture('dictation-img', 'dictation-fallback', currentWordIndex);
-    document.getElementById('dictation-counter').innerText = `Word ${currentWordIndex + 1} of ${TOTAL_WORDS}`;
-
-    updateArrows('dict-prev', 'dict-next');
-    if (withSound) playSound('transition-sound');
+    renderDots('dictation-dots');
+    updateToolbar();
+    if (withSound) Sound.word();
     startWordTimer();
 }
 
@@ -310,10 +438,11 @@ function nextDictationWord() {
 // Short "Pencils down!" pause before the checking phase
 function finishDictation() {
     stopTimer();
+    Sound.ambientStop();
     clearTimeout(pencilsTimeout);
     currentWordIndex = 0;
     showScreen('screen-pencils-down');
-    playSound('transition-sound');
+    Sound.pencilsDown();
     pencilsTimeout = setTimeout(skipPencilsDown, PENCILS_DOWN_MS);
 }
 
@@ -324,19 +453,44 @@ function skipPencilsDown() {
 
 // --- PHASE 2: CHECKING ---
 function startCheckPhase() {
+    cancelSpell();
     showScreen('screen-check-student');
     isRolling = false;
-    document.getElementById('student-number').innerText = "-";
-    document.getElementById('check-student-counter').innerText = `Word ${currentWordIndex + 1} of ${TOTAL_WORDS}`;
+    renderDots('check-student-dots');
 
-    document.getElementById('btn-roll').classList.remove('hidden');
-    document.getElementById('btn-reroll').classList.add('hidden');
-    document.getElementById('btn-confirm-student').classList.add('hidden');
+    const display = document.getElementById('student-number');
+    const assigned = studentForWord[currentWordIndex];
+
+    if (assigned !== undefined) {
+        // Coming back to a word: show the same student again instead of rolling a new one
+        display.innerText = assigned;
+        display.setAttribute('data-chosen', assigned);
+        document.getElementById('btn-roll').classList.add('hidden');
+        document.getElementById('btn-reroll').classList.remove('hidden');
+        document.getElementById('btn-confirm-student').classList.remove('hidden');
+    } else {
+        display.innerText = "-";
+        display.removeAttribute('data-chosen');
+        document.getElementById('btn-roll').classList.remove('hidden');
+        document.getElementById('btn-reroll').classList.add('hidden');
+        document.getElementById('btn-confirm-student').classList.add('hidden');
+    }
+}
+
+// A reroll on an already chosen word gives that student back to the pool
+function releaseAssigned() {
+    const student = studentForWord[currentWordIndex];
+    if (student !== undefined) {
+        const pool = getStudentPool();
+        if (!pool.includes(student)) pool.push(student);
+        delete studentForWord[currentWordIndex];
+    }
 }
 
 function rollStudent() {
     if (isRolling) return;
     isRolling = true;
+    releaseAssigned();
 
     if (getStudentPool().length === 0) {
         // If pool is empty, restore it
@@ -367,11 +521,13 @@ function rollStudent() {
 
             display.innerText = chosenStudent;
             display.setAttribute('data-chosen', chosenStudent);
+            Sound.land();
 
             isRolling = false;
             document.getElementById('btn-reroll').classList.remove('hidden');
             document.getElementById('btn-confirm-student').classList.remove('hidden');
         } else {
+            Sound.tick();
             setTimeout(rollInterval, intervalTime += 20);
         }
     };
@@ -380,27 +536,91 @@ function rollStudent() {
 
 function confirmStudent() {
     const chosen = parseInt(document.getElementById('student-number').getAttribute('data-chosen'));
-    const pool = getStudentPool();
-    setStudentFromPool(pool, chosen);
+    if (studentForWord[currentWordIndex] === undefined) {
+        setStudentFromPool(getStudentPool(), chosen);
+        studentForWord[currentWordIndex] = chosen;
+    }
 
     showCheckWordScreen();
 }
 
+function mainButtonLabel() {
+    return currentWordIndex === TOTAL_WORDS - 1 ? 'Finish ✓' : 'Next Word →';
+}
+
 function showCheckWordScreen() {
+    cancelSpell();
     showScreen('screen-check-word');
     document.getElementById('check-word-title').innerText = `Word #${currentWordIndex + 1}`;
 
     showPicture('check-img', 'check-fallback', currentWordIndex);
+    answerShown = false;
     document.getElementById('answer-display').innerText = "";
+    document.getElementById('btn-answer').textContent = 'Show the Answer';
+    document.getElementById('btn-spell').classList.add('hidden');
+}
 
-    document.getElementById('btn-answer').classList.remove('hidden');
-
-    updateArrows('check-prev', 'check-next');
+// One main button / key: first it reveals the answer, then it moves on
+function mainCheckAction() {
+    if (!answerShown) showAnswer();
+    else nextCheckWord();
 }
 
 function showAnswer() {
-    const currentWordText = wordsList[currentWordIndex];
-    document.getElementById('answer-display').innerText = currentWordText;
+    if (answerShown) return;
+    answerShown = true;
+
+    const display = document.getElementById('answer-display');
+    display.innerHTML = '';
+    Array.from(wordsList[currentWordIndex]).forEach((ch) => {
+        const span = document.createElement('span');
+        span.className = ch === ' ' ? 'letter space' : 'letter';
+        span.textContent = ch === ' ' ? ' ' : ch;
+        display.appendChild(span);
+    });
+
+    Sound.answer();
+    document.getElementById('btn-answer').textContent = mainButtonLabel();
+    document.getElementById('btn-spell').classList.remove('hidden');
+}
+
+// "Spell it": the letters light up one by one with a soft note so the class can spell aloud
+function cancelSpell() {
+    clearInterval(spellTimer);
+    spellTimer = null;
+    document.querySelectorAll('#answer-display .letter').forEach((l) => l.classList.remove('dim', 'on'));
+}
+
+function spellAnswer() {
+    if (activeScreen !== 'screen-check-word') return;
+    if (!answerShown) showAnswer();
+    cancelSpell();
+
+    const spans = Array.from(document.querySelectorAll('#answer-display .letter'));
+    spans.forEach((l) => l.classList.add('dim'));
+
+    let step = 0;
+    let letterNo = 0;
+    let previous = null;
+    spellTimer = setInterval(() => {
+        if (previous) previous.classList.remove('on');
+        // Spaces between words appear at once, without a note
+        while (step < spans.length && spans[step].classList.contains('space')) {
+            spans[step].classList.remove('dim');
+            step++;
+        }
+        if (step >= spans.length) {
+            cancelSpell();
+            return;
+        }
+        const span = spans[step];
+        span.classList.remove('dim');
+        span.classList.add('on');
+        Sound.letter(letterNo);
+        previous = span;
+        step++;
+        letterNo++;
+    }, SPELL_STEP_MS);
 }
 
 function prevCheckWord() {
@@ -415,7 +635,9 @@ function nextCheckWord() {
         currentWordIndex++;
         startCheckPhase();
     } else {
+        cancelSpell();
         showScreen('screen-finish');
+        Sound.finish();
     }
 }
 
@@ -427,6 +649,8 @@ function startDirectCheck() {
 
 function resetApp() {
     stopTimer();
+    cancelSpell();
+    Sound.ambientStop();
     clearTimeout(pencilsTimeout);
     currentWordIndex = 0;
     initStudents();

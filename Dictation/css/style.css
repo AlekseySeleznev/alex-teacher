@@ -1,3 +1,12 @@
+/* Nunito (variable) – bundled so it looks the same on every computer. SIL OFL, see fonts/OFL.txt */
+@font-face {
+    font-family: 'Nunito';
+    src: url('../fonts/nunito-variable.woff2') format('woff2');
+    font-weight: 200 1000;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     --green-900: #2f4a35;
     --green-700: #3a5a40;
@@ -8,12 +17,14 @@
     --bg: #f4f7f5;
     --line: #dfe5e0;
     --warn: #c8553d;
+    --frame-shadow: 0 6px 22px rgba(58, 90, 64, 0.18);
 }
 
 * { box-sizing: border-box; }
 
 body {
-    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+    font-family: 'Nunito', 'Chalkboard SE', 'Comic Sans MS', sans-serif;
+    font-weight: 600;
     background-color: var(--bg);
     color: var(--text);
     margin: 0;
@@ -26,6 +37,9 @@ body {
     user-select: none;
 }
 
+/* Mouse hides itself during the dictation so it never distracts */
+body.hide-cursor, body.hide-cursor * { cursor: none !important; }
+
 .container {
     text-align: center;
     width: 100%;
@@ -35,6 +49,7 @@ body {
     padding: 40px;
     border-radius: 24px;
     box-shadow: 0 10px 30px rgba(142, 158, 147, 0.15);
+    animation: screen-in 0.45s ease both;
 }
 
 /* Screens that show a picture use almost the whole display */
@@ -45,12 +60,14 @@ body {
 
 h1 {
     font-size: 3rem;
+    font-weight: 800;
     color: var(--green-700);
     margin: 0 0 20px;
 }
 
 h2 {
     font-size: 2rem;
+    font-weight: 800;
     color: #4a5d4e;
 }
 
@@ -61,6 +78,7 @@ p {
 
 button {
     font-family: inherit;
+    font-weight: 800;
     background-color: var(--green-600);
     color: white;
     border: none;
@@ -79,14 +97,33 @@ button:hover {
 
 button:active { transform: translateY(0); }
 
-button:focus-visible {
+button:focus-visible,
+input:focus-visible {
     outline: 4px solid var(--green-300);
     outline-offset: 3px;
 }
 
-/* ---------- Pictures ---------- */
+/* ---------- Soft transitions ---------- */
 
-/* The picture gets whatever height is left after the UI around it */
+@keyframes screen-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes picture-in {
+    from { opacity: 0; transform: scale(0.985); }
+    to   { opacity: 1; transform: none; }
+}
+
+.swap { animation: picture-in 0.5s ease both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .container, .swap, .progress-bar.low { animation: none !important; }
+    button { transition: none; }
+}
+
+/* ---------- Pictures: one shared frame so every unit looks like a series ---------- */
+
 .dictation-image {
     display: block;
     margin: 12px auto;
@@ -98,8 +135,10 @@ button:focus-visible {
     min-height: 240px;
     object-fit: contain;
     background: #ffffff;
-    border-radius: 18px;
+    padding: 10px;
+    border-radius: 22px;
     border: 3px solid var(--line);
+    box-shadow: var(--frame-shadow);
 }
 
 /* In the check screen the word and the button take extra room */
@@ -120,9 +159,10 @@ button:focus-visible {
     max-height: 720px;
     font-size: clamp(8rem, 44vh, 24rem);
     line-height: 1;
-    background: #f4f7f5;
-    border-radius: 18px;
+    background: #ffffff;
+    border-radius: 22px;
     border: 3px solid var(--line);
+    box-shadow: var(--frame-shadow);
 }
 
 #screen-check-word .picture-fallback {
@@ -150,29 +190,61 @@ button:focus-visible {
     transition: background-color 0.4s ease;
 }
 
-/* Last seconds: the bar turns warm so the class knows time is almost up */
-.progress-bar.low { background-color: var(--warn); }
-.progress-bar.paused { background-color: #b8bfba; }
+/* Last seconds: warm colour + diagonal stripes + gentle pulse.
+   Shape and motion (not only colour) so everyone notices it. */
+.progress-bar.low {
+    background-color: var(--warn);
+    background-image: repeating-linear-gradient(
+        -45deg, rgba(255, 255, 255, 0.28) 0 12px, rgba(255, 255, 255, 0) 12px 24px);
+    animation: bar-pulse 1s ease-in-out infinite;
+}
 
-.counter {
-    font-size: 1.6rem;
-    color: var(--text-soft);
-    margin-top: 10px;
-    font-weight: 600;
+@keyframes bar-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.6; }
+}
+
+.progress-bar.paused {
+    background-color: #b8bfba;
+    background-image: none;
+    animation: none;
 }
 
 #pause-note {
     font-size: 1.6rem;
     color: var(--warn);
-    font-weight: 700;
+    font-weight: 800;
     margin-top: 6px;
 }
+
+/* ---------- Progress dots ---------- */
+
+.dots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+    min-height: 26px;
+    align-items: center;
+}
+
+.dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: all 0.3s ease;
+}
+
+.dot.done    { background: var(--green-300); }
+.dot.current { background: var(--green-700); transform: scale(1.5); }
 
 /* ---------- Student roller ---------- */
 
 .student-box {
     font-size: 9rem;
-    font-weight: bold;
+    font-weight: 800;
     color: var(--green-700);
     margin: 10px 0;
     min-height: 170px;
@@ -181,16 +253,21 @@ button:focus-visible {
     align-items: center;
 }
 
-/* ---------- Answer ---------- */
+/* ---------- Answer + spelling ---------- */
 
 .answer-text {
     font-size: clamp(3rem, 7vw, 5.5rem);
     color: var(--green-900);
-    font-weight: bold;
+    font-weight: 800;
     margin-top: 8px;
     min-height: 1.3em;
     letter-spacing: 2px;
 }
+
+.answer-text .letter { display: inline-block; transition: opacity 0.35s ease, transform 0.35s ease; }
+.answer-text .letter.space { width: 0.35em; }
+.answer-text .letter.dim { opacity: 0.18; }
+.answer-text .letter.on { opacity: 1; transform: translateY(-6px) scale(1.12); color: var(--green-600); }
 
 .hidden { display: none !important; }
 
@@ -203,34 +280,6 @@ button:focus-visible {
 }
 
 #screen-check-word .button-group { margin-top: 12px; }
-
-.nav-arrows {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-top: 25px;
-}
-
-.nav-arrows button {
-    background-color: #e9ecef;
-    color: #4a5d4e;
-    padding: 10px 25px;
-    font-size: 1.2rem;
-    box-shadow: none;
-    border: 1px solid #ced4da;
-}
-
-.nav-arrows button:hover {
-    background-color: var(--green-300);
-    color: white;
-    border-color: var(--green-300);
-}
-
-.nav-arrows button:disabled {
-    opacity: 0;
-    cursor: default;
-    pointer-events: none;
-}
 
 /* ---------- Welcome screen ---------- */
 
@@ -248,7 +297,7 @@ button:focus-visible {
     border-radius: 12px;
     display: inline-block;
     border: 2px dashed var(--green-300);
-    margin: 0 0 40px;
+    margin: 0 0 32px;
 }
 
 .unit-title {
@@ -260,7 +309,7 @@ button:focus-visible {
 .good-luck-text {
     font-size: 2.5rem;
     color: var(--green-600);
-    margin: 0 0 40px;
+    margin: 0 0 32px;
 }
 
 .btn-secondary {
@@ -294,6 +343,48 @@ button:focus-visible {
 .btn-final { background-color: #d4a373; }
 .btn-final:hover { background-color: #b98657; }
 
+/* Sound controls on the welcome screen */
+.sound-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 26px;
+    color: var(--text-soft);
+    font-size: 1.1rem;
+}
+
+.sound-row .btn-text {
+    font-size: 1.7rem;
+    padding: 4px 12px;
+}
+
+.sound-row input[type="range"] {
+    width: 150px;
+    accent-color: var(--green-600);
+}
+
+.sound-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.sound-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--green-600);
+}
+
+.key-hint {
+    font-size: 0.95rem;
+    color: var(--text-soft);
+    margin: 18px 0 0;
+    opacity: 0.85;
+}
+
 /* ---------- Pencils down ---------- */
 
 .big-emoji {
@@ -301,6 +392,65 @@ button:focus-visible {
     line-height: 1;
     margin-bottom: 10px;
 }
+
+/* ---------- Floating toolbar (appears when the mouse moves) ---------- */
+
+#toolbar {
+    position: fixed;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%) translateY(20px);
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--line);
+    border-radius: 40px;
+    box-shadow: 0 6px 24px rgba(58, 90, 64, 0.22);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    z-index: 20;
+}
+
+#toolbar.show, #toolbar:hover {
+    opacity: 1;
+    transform: translateX(-50%);
+    pointer-events: auto;
+}
+
+#toolbar button {
+    background: transparent;
+    color: var(--green-700);
+    box-shadow: none;
+    font-size: 1.5rem;
+    padding: 6px 14px;
+    border-radius: 30px;
+    line-height: 1.2;
+}
+
+#toolbar button:hover { background: #e9ecef; transform: none; }
+#toolbar button:disabled { opacity: 0.3; cursor: default; }
+
+/* Small message for keyboard shortcuts (M, F) */
+#toast {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--green-900);
+    color: #fff;
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 30;
+}
+
+#toast.show { opacity: 0.95; }
 
 /* ---------- Unit menu ---------- */
 
