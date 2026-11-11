@@ -9,60 +9,68 @@
 <body>
 
     <div id="screen-welcome" class="container">
-        <p class="instruction-text">Please, write down today's date:</p>
-        
+        <p class="instruction-text">Write down today's date:</p>
+
         <div id="date-display"></div>
-        
+
         <h2 id="welcome-subtitle" class="unit-title">Unit Title</h2>
-        
+
         <h1 id="welcome-title" class="good-luck-text">Good Luck! 🍀</h1>
-        
+
         <div class="button-group">
             <button onclick="startDictation()">Start Dictation</button>
             <button class="btn-secondary" onclick="startDirectCheck()">Go to Checking</button>
         </div>
-        
+
         <div style="margin-top: 40px;">
             <button class="btn-text" onclick="window.location.href='index.html'">Back to Menu</button>
         </div>
     </div>
 
-    <div id="screen-dictation" class="container hidden">
-        <h2 id="dictation-title">Word</h2>
+    <div id="screen-dictation" class="container wide hidden">
         <img id="dictation-img" class="dictation-image" src="" alt="Dictation word">
+        <div id="dictation-fallback" class="picture-fallback hidden"></div>
         <div class="progress-container">
             <div id="timer-bar" class="progress-bar"></div>
         </div>
         <div id="dictation-counter" class="counter">Word 1 of 10</div>
-        
-        <div class="nav-arrows">
+        <div id="pause-note" class="hidden">⏸ Paused — press Space to continue</div>
+
+        <div class="nav-arrows" style="display: none;">
             <button id="dict-prev" onclick="prevDictationWord()">←</button>
             <button id="dict-next" onclick="nextDictationWord()">→</button>
         </div>
     </div>
 
+    <div id="screen-pencils-down" class="container hidden" onclick="skipPencilsDown()">
+        <div class="big-emoji">✏️</div>
+        <h1>Pencils down!</h1>
+        <p>Let's check together.</p>
+    </div>
+
     <div id="screen-check-student" class="container hidden">
         <h2>Who is going to write? 🤔</h2>
         <div id="student-number" class="student-box">-</div>
-        
+
         <div id="randomizer-actions" class="button-group">
             <button id="btn-roll" onclick="rollStudent()">Roll Student</button>
-            <button id="btn-reroll" class="hidden" onclick="rollStudent()" style="background-color: #a3b18a;">Reroll</button>
-            <button id="btn-confirm-student" class="hidden" onclick="confirmStudent()" style="background-color: #3a5a40;">OK</button>
+            <button id="btn-reroll" class="btn-reroll hidden" onclick="rollStudent()">Reroll</button>
+            <button id="btn-confirm-student" class="btn-ok hidden" onclick="confirmStudent()">OK</button>
         </div>
         <div id="check-student-counter" class="counter">Word 1 of 10</div>
     </div>
 
-    <div id="screen-check-word" class="container hidden">
-        <h2 id="check-word-title">Check Word</h2>
+    <div id="screen-check-word" class="container wide hidden">
+        <h2 id="check-word-title" style="margin: 4px 0;">Check Word</h2>
         <img id="check-img" class="dictation-image" src="" alt="Check word">
+        <div id="check-fallback" class="picture-fallback hidden"></div>
         <div id="answer-display" class="answer-text"></div>
-        
+
         <div class="button-group">
             <button id="btn-answer" onclick="showAnswer()">Show the Answer</button>
         </div>
 
-        <div class="nav-arrows">
+        <div class="nav-arrows" style="display: none;">
             <button id="check-prev" onclick="prevCheckWord()">←</button>
             <button id="check-next" onclick="nextCheckWord()">→</button>
         </div>
@@ -73,9 +81,12 @@
         <p>The dictation is finished. Great focus today!</p>
         <div class="button-group">
             <button onclick="resetApp()">Restart Application</button>
-            <button onclick="window.location.href='index.html'" style="background-color: #6b7c6e;">Back to Menu</button>
+            <button class="btn-secondary" onclick="window.location.href='index.html'">Back to Menu</button>
         </div>
     </div>
+
+    <audio id="focus-chime" src="audio/chime.mp3" preload="auto"></audio>
+    <audio id="transition-sound" src="audio/transition.mp3" preload="auto"></audio>
 
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>

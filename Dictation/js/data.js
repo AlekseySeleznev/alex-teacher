@@ -32,9 +32,32 @@ const dictationData = {
     "5": {
         title: "Unit 5. We've got English",
         words: [
-            "art", "maths", "English", "science", "PE", 
+            "art", "maths", "English", "science", "PE",
             "music", "playground", "sports field", "art room",
             "computer room", "gym"
+        ]
+    },
+    "6": {
+        title: "Unit 6. Let's play after school",
+        words: [
+            "help my mum", "do my homework", "visit my grandma", "go swimming", "have a music lesson",
+            "watch TV", "listen to music", "play with friends", "read a book", "write an email"
+        ]
+    },
+    "8": {
+        title: "Unit 8. What's the time?",
+        words: [
+            "get up", "have breakfast", "go to school", "go home", "have dinner",
+            "go to bed", "in the morning", "in the afternoon", "in the evening", "at night"
+        ],
+        // Shown big instead of a picture until images/unit8/1..10.jpg exist
+        emoji: ["⏰", "🥣", "🏫", "🏠", "🍽️", "🛏️", "🌅", "☀️", "🌇", "🌙"]
+    },
+    "final": {
+        title: "Final Test Semester 1 preparation",
+        words: [
+            "salad", "chicken", "pizza", "fries", "milkshake",
+            "twenty", "thirty", "forty", "fifty"
         ]
     }
 };

@@ -10,14 +10,23 @@
     <div class="container">
         <h1>Select Unit 📚</h1>
         <p>Choose the dictation you want to run today:</p>
-        <div class="button-group" style="flex-direction: column; align-items: center; gap: 20px;">
-            <button onclick="window.location.href='dictation.html?unit=1'" style="width: 100%; max-width: 400px;">Unit 1. Our new things</button>
-            <button onclick="window.location.href='dictation.html?unit=2'" style="width: 100%; max-width: 400px;">Unit 2. They're happy now</button>
-            <button onclick="window.location.href='dictation.html?unit=3'" style="width: 100%; max-width: 400px;">Unit 3. I can ride a bike</button>
-            <!-- New button for Unit 4 -->
-            <button onclick="window.location.href='dictation.html?unit=4'" style="width: 100%; max-width: 400px;">Unit 4. Have you got a milkshake?</button>
-            <button onclick="window.location.href='dictation.html?unit=5'" style="width: 100%; max-width: 400px;">Unit 5. We've got English</button>
-        </div>
+        <!-- Buttons are generated from js/data.js -->
+        <div id="unit-list" class="unit-list"></div>
     </div>
+
+    <script src="js/data.js"></script>
+    <script>
+        // Numeric unit keys come first in ascending order, "final" last.
+        const list = document.getElementById('unit-list');
+        Object.keys(dictationData).forEach((key) => {
+            const btn = document.createElement('button');
+            btn.textContent = dictationData[key].title;
+            if (key === 'final') btn.className = 'btn-final';
+            btn.addEventListener('click', () => {
+                window.location.href = 'dictation.html?unit=' + encodeURIComponent(key);
+            });
+            list.appendChild(btn);
+        });
+    </script>
 </body>
 </html>
