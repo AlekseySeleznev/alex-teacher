@@ -68,8 +68,11 @@ const Sound = (() => {
         osc.stop(t + dur + 0.05);
     }
 
-    // Pentatonic steps for the "spell it" letters
-    const SCALE = [392.0, 440.0, 523.25, 587.33, 659.25, 783.99];
+    // "Spell it": C major scale starting at middle C (do re mi fa sol la si do ...).
+    // Semitones above C4 for the 7 degrees of one octave.
+    const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11];
+    const C4 = 261.63;
+    const SPELL_NOTES = 14;   // two octaves, then the scale starts again
 
     // ---- background: very quiet brown noise (like soft rain / wind) ----
     function ambientStart() {
@@ -171,9 +174,10 @@ const Sound = (() => {
             tone(880, { dur: 0.5, gain: 0.13 });
             tone(1318.5, { at: 0.08, dur: 0.6, gain: 0.08 });
         },
-        letter(i) {                                 // one note per spelled letter
-            const octave = Math.floor(i / SCALE.length) % 2 === 0 ? 1 : 2;
-            tone(SCALE[i % SCALE.length] * octave, { dur: 0.3, gain: 0.16 });
+        letter(i) {                                 // one note per spelled letter: do, re, mi, fa ...
+            const n = i % SPELL_NOTES;
+            const semitones = Math.floor(n / 7) * 12 + MAJOR_STEPS[n % 7];
+            tone(C4 * Math.pow(2, semitones / 12), { dur: 0.4, gain: 0.2 });
         },
         finish() {                                  // end of the checking
             [261.63, 329.63, 392.0, 523.25].forEach((f, i) =>

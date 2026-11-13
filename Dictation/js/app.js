@@ -604,9 +604,11 @@ function spellAnswer() {
     let previous = null;
     spellTimer = setInterval(() => {
         if (previous) previous.classList.remove('on');
-        // Spaces between words appear at once, without a note
+        // Spaces between words appear at once, without a note;
+        // every new word starts the scale again from "do"
         while (step < spans.length && spans[step].classList.contains('space')) {
             spans[step].classList.remove('dim');
+            letterNo = 0;
             step++;
         }
         if (step >= spans.length) {
