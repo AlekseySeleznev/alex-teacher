@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pair Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: one calm sheet — header strip, setup card, then a garden of pair cards. Single light look by choice. */
+:root {
+  color-scheme: light;
+  --paper: #fbf4f5;      /* blush page */
+  --sheet: #ffffff;
+  --ink: #3d2a35;        /* plum-brown text */
+  --muted: #8a7480;
+  --line: #ecdde3;
+  --rose: #c95b7f;       /* main accent */
+  --rose-soft: #f6e1e8;
+  --lilac: #9a85c8;      /* boys */
+  --lilac-soft: #ece6f6;
+  --girl: #e58aa8;       /* girls */
+  --girl-soft: #fbe6ee;
+  --sage: #7fae94;       /* done */
+  --font-display: "Fredoka", "Nunito", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --radius: 18px;
+  --shadow: 0 6px 22px rgba(120, 60, 85, 0.10);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+  user-select: none;
+}
+button { font-family: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, .pair-card:focus-visible { outline: 3px solid var(--rose); outline-offset: 2px; }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.9rem, 4.5vw, 2.6rem); margin: 0; color: var(--rose); letter-spacing: .01em; }
+.tagline { color: var(--muted); font-weight: 700; }
+.head-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.summary { background: var(--sheet); border: 1px solid var(--line); border-radius: 999px; padding: 7px 16px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sound-btn { border: 1px solid var(--line); background: var(--sheet); border-radius: 999px; padding: 7px 14px; font-weight: 800; color: var(--muted); }
+.sound-btn[aria-pressed="false"] { color: var(--rose); border-color: var(--rose); }
+
+.sheet { background: var(--sheet); border-radius: 24px; box-shadow: var(--shadow); padding: 22px; display: flex; flex-direction: column; gap: 16px; align-items: center; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.6rem; margin: 0; text-wrap: balance; text-align: center; }
+.hint { color: var(--muted); margin: -8px 0 0; text-align: center; }
+
+.composition { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; justify-content: center; background: var(--rose-soft); border-radius: var(--radius); padding: 12px 20px; }
+.field { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper button { width: 36px; height: 36px; border-radius: 12px; border: none; background: var(--sheet); font-size: 1.2rem; font-weight: 800; color: var(--rose); }
+.stepper button:hover { background: #fff6f8; }
+.stepper output { min-width: 34px; text-align: center; font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.comp-note { color: var(--muted); font-size: .92rem; font-weight: 700; }
+
+.legend { display: flex; gap: 16px; color: var(--muted); font-weight: 700; font-size: .95rem; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot.boy { background: var(--lilac); } .dot.girl { background: var(--girl); }
+
+.num-grid { width: 100%; max-width: 840px; display: grid; gap: 9px; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
+.num { height: 56px; border-radius: 14px; border: 2px solid transparent; font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums; transition: transform .12s, opacity .2s; }
+.num.boy { background: var(--lilac-soft); border-color: var(--lilac); }
+.num.girl { background: var(--girl-soft); border-color: var(--girl); }
+.num:hover { transform: translateY(-2px); }
+.num.absent { opacity: .35; text-decoration: line-through; background: transparent; border-style: dashed; }
+
+.actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.btn-main { font-family: var(--font-display); font-weight: 600; font-size: 1.35rem; padding: 16px 40px; border-radius: 999px; border: none; background: var(--rose); color: #fff; box-shadow: 0 6px 18px rgba(201, 91, 127, .3); transition: transform .15s; }
+.btn-main:hover { transform: translateY(-2px); }
+.btn-main:disabled { opacity: .4; cursor: default; transform: none; }
+.btn-main.small { font-size: 1.1rem; padding: 12px 28px; }
+.btn-soft { font-weight: 800; padding: 11px 20px; border-radius: 999px; border: 2px solid var(--line); background: var(--sheet); color: var(--muted); }
+.btn-soft:hover { border-color: var(--rose); color: var(--rose); }
+
+.status { color: var(--muted); font-weight: 700; min-height: 1.5em; text-align: center; }
+.pair-grid { width: 100%; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.pair-card { position: relative; border: 2px dashed var(--line); border-radius: var(--radius); padding: 10px 12px 12px; min-height: 100px; transition: background .7s ease, border-color .7s ease, box-shadow .7s ease; }
+.pair-card > * { transition: opacity .7s ease, transform .7s ease; }
+.pair-card.pending > * { opacity: 0; transform: translateY(8px); }
+.pair-card.shown { border: 2px solid var(--line); background: var(--sheet); box-shadow: var(--shadow); cursor: pointer; }
+.pair-card.shown:hover { border-color: var(--rose); }
+.pair-card.done { background: transparent; box-shadow: none; border-style: dashed; }
+.pair-card.done .pair-chips, .pair-card.done .pair-title { opacity: .38; }
+.pair-title { font-size: .78rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.done-badge { display: none; position: absolute; top: 8px; right: 10px; font-size: .8rem; font-weight: 800; color: #fff; background: var(--sage); padding: 3px 10px; border-radius: 999px; }
+.pair-card.done .done-badge { display: block; }
+.pair-chips { display: flex; gap: 8px; }
+.chip { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; border-radius: 14px; border: 2px solid transparent; }
+.chip.boy { background: var(--lilac-soft); border-color: var(--lilac); }
+.chip.girl { background: var(--girl-soft); border-color: var(--girl); }
+.chip.unknown { justify-content: center; border: 2px dashed var(--muted); background: transparent; }
+.av { width: 40px; height: 40px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; background: var(--sheet); }
+.nm { font-family: var(--font-display); font-size: 1.55rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.chip.unknown .nm { color: var(--muted); font-size: 1.8rem; }
+
+@media (max-width: 480px) { .sheet { padding: 16px; } .btn-main { padding: 14px 28px; } }
+@media (prefers-reduced-motion: reduce) { .pair-card, .pair-card > *, .num, .btn-main { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><h1>Pair Maker</h1><span class="tagline">Boy–girl partners for dialogues</span></div>
+    <div class="head-right">
+      <div class="summary" id="summary"></div>
+      <button class="sound-btn" id="btn-sound" aria-pressed="true">Sound on</button>
+    </div>
+  </header>
+
+  <section class="sheet" id="view-setup">
+    <h2>Who is absent today?</h2>
+    <p class="hint">Tap the numbers of the students who are not here.</p>
+    <div class="composition">
+      <div class="field">Students in class
+        <div class="stepper"><button id="total-dec" aria-label="Fewer students">−</button><output id="total-val">33</output><button id="total-inc" aria-label="More students">+</button></div></div>
+      <div class="field">Last boy's number
+        <div class="stepper"><button id="boys-dec" aria-label="Lower last boy's number">−</button><output id="boys-val">15</output><button id="boys-inc" aria-label="Higher last boy's number">+</button></div></div>
+      <div class="comp-note" id="comp-note"></div>
+    </div>
+    <div class="legend"><span><i class="dot boy"></i>Boys</span><span><i class="dot girl"></i>Girls</span></div>
+    <div class="num-grid" id="num-grid"></div>
+    <div class="actions">
+      <button class="btn-soft" id="btn-clear">Clear absent</button>
+      <button class="btn-main" id="btn-generate">Make pairs</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="view-result" hidden>
+    <div class="status" id="status"></div>
+    <div class="pair-grid" id="pair-grid"></div>
+    <div class="actions">
+      <button class="btn-soft" id="btn-edit">Edit absent</button>
+      <button class="btn-soft" id="btn-skip">Show all now</button>
+      <button class="btn-main small" id="btn-again">Pair again</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const DEFAULT_CFG = { total: 33, boys: 15 }; // numbers 1..boys are boys, the rest girls
+const REVEAL_MS = 700;
+const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+const ANIMALS = ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🦒","🐸","🐵","🦜","🐧","🐦","🦆","🦉","🦄","🐴","🐝","🐢","🐙","🦋","🐬","🐳","🦖","🦕","🐿️","🦔","🐌"];
+const AV_COLORS = ["#fbe0e8","#ece6f6","#fde9d9","#e3f1e8","#e2eefa","#fff1cc","#f3e3f3"];
+
+let cfg = { ...DEFAULT_CFG };
+let absent = new Set();
+let groups = [];
+let doneSet = new Set();
+let revealTimer = null;
+let muted = false;
+
+function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+function safeSet(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* storage unavailable */ } }
+
+function loadCfg() {
+  try {
+    const v = JSON.parse(safeGet("pm_cfg"));
+    if (v && v.total >= 2 && v.total <= 40 && v.boys >= 0 && v.boys <= v.total) return v;
+  } catch (e) { /* default */ }
+  return { ...DEFAULT_CFG };
+}
+// Absent list is kept for today only, so each new day starts with everyone present.
+function todayKey() { const d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+function loadAbsent() {
+  try { const v = JSON.parse(safeGet("pm_absent")); if (v && v.date === todayKey()) return new Set(v.list); } catch (e) { /* none */ }
+  return new Set();
+}
+function saveCfg() { safeSet("pm_cfg", JSON.stringify(cfg)); }
+function saveAbsent() { safeSet("pm_absent", JSON.stringify({ date: todayKey(), list: [...absent] })); }
+
+const isBoy = (n) => n <= cfg.boys;
+const allNumbers = () => Array.from({ length: cfg.total }, (_, i) => i + 1);
+const presentBoys = () => allNumbers().filter((n) => isBoy(n) && !absent.has(n));
+const presentGirls = () => allNumbers().filter((n) => !isBoy(n) && !absent.has(n));
+
+function hash(n) { let h = 0; const s = "pm-" + n; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
+function avatarFor(n) { const h = hash(n); return { emoji: ANIMALS[h % ANIMALS.length], color: AV_COLORS[Math.floor(h / ANIMALS.length) % AV_COLORS.length] }; }
+
+// ── pairing ──
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+// Boy–girl pairs first; leftovers of the bigger group pair with each other; one odd student goes last with a "?".
+function makeGroups(boys, girls) {
+  const b = shuffle([...boys]), g = shuffle([...girls]), out = [];
+  const mixed = Math.min(b.length, g.length);
+  for (let i = 0; i < mixed; i++) out.push([b[i], g[i]]);
+  const extra = b.length > g.length ? b.slice(mixed) : g.slice(mixed);
+  for (let i = 0; i + 1 < extra.length; i += 2) out.push([extra[i], extra[i + 1]]);
+  shuffle(out);
+  if (extra.length % 2 === 1) out.push([extra[extra.length - 1]]);
+  return out;
+}
+const pairKey = (grp) => grp.length === 2 ? Math.min(...grp) + "-" + Math.max(...grp) : null;
+// Keeps the pairing that repeats the fewest partners from last time.
+function generateGroups() {
+  let last = new Set();
+  try { last = new Set(JSON.parse(safeGet("pm_last") || "[]")); } catch (e) { /* ignore */ }
+  const boys = presentBoys(), girls = presentGirls();
+  let best = null, bestScore = Infinity;
+  for (let t = 0; t < 300 && bestScore > 0; t++) {
+    const cand = makeGroups(boys, girls);
+    const score = cand.filter((grp) => last.has(pairKey(grp))).length;
+    if (score < bestScore) { best = cand; bestScore = score; }
+  }
+  safeSet("pm_last", JSON.stringify(best.map(pairKey).filter(Boolean)));
+  return best;
+}
+
+// ── soft sound ──
+let audioCtx = null;
+function getCtx() {
+  if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function pluck(freq, when, peak, dur) {
+  const ctx = getCtx(); if (!ctx) return;
+  const t0 = ctx.currentTime + (when || 0);
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = "sine"; o.frequency.setValueAtTime(freq, t0);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(peak, t0 + 0.04);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(ctx.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+}
+const NOTES = [392.0, 440.0, 523.25, 587.33, 659.25];
+let lastNote = -1;
+function playRevealNote() { if (muted) return; let i; do { i = Math.floor(Math.random() * NOTES.length); } while (i === lastNote); lastNote = i; pluck(NOTES[i], 0, 0.05, 0.9); }
+function playFinish() { if (muted) return; [261.63, 329.63, 392.0].forEach((f, i) => pluck(f, i * 0.12, 0.035, 1.8)); }
+
+// ── setup view ──
+const $ = (id) => document.getElementById(id);
+function showView(name) { $("view-setup").hidden = name !== "setup"; $("view-result").hidden = name !== "result"; }
+
+function renderComposition() {
+  $("total-val").textContent = cfg.total;
+  $("boys-val").textContent = cfg.boys;
+  $("comp-note").textContent = "Boys 1–" + cfg.boys + " · Girls " + (cfg.boys + 1) + "–" + cfg.total;
+}
+function renderGrid() {
+  const grid = $("num-grid"); grid.innerHTML = "";
+  allNumbers().forEach((n) => {
+    const b = document.createElement("button");
+    b.className = "num " + (isBoy(n) ? "boy" : "girl") + (absent.has(n) ? " absent" : "");
+    b.textContent = n;
+    b.setAttribute("aria-pressed", absent.has(n));
+    b.addEventListener("click", () => {
+      if (absent.has(n)) absent.delete(n); else absent.add(n);
+      saveAbsent();
+      b.classList.toggle("absent", absent.has(n));
+      b.setAttribute("aria-pressed", absent.has(n));
+      updateSummary();
+    });
+    grid.appendChild(b);
+  });
+  updateSummary();
+}
+function updateSummary() {
+  const nb = presentBoys().length, ng = presentGirls().length;
+  $("summary").textContent = "Present " + (nb + ng) + " · " + nb + " boys · " + ng + " girls";
+  $("btn-generate").disabled = nb + ng < 2;
+}
+function applyCfg() {
+  cfg.boys = Math.min(cfg.boys, cfg.total);
+  absent.forEach((n) => { if (n > cfg.total) absent.delete(n); });
+  saveCfg(); saveAbsent(); renderComposition(); renderGrid();
+}
+$("total-dec").onclick = () => { if (cfg.total > 2) { cfg.total--; applyCfg(); } };
+$("total-inc").onclick = () => { if (cfg.total < 40) { cfg.total++; applyCfg(); } };
+$("boys-dec").onclick = () => { if (cfg.boys > 0) { cfg.boys--; applyCfg(); } };
+$("boys-inc").onclick = () => { if (cfg.boys < cfg.total) { cfg.boys++; applyCfg(); } };
+$("btn-clear").onclick = () => { absent.clear(); saveAbsent(); renderGrid(); };
+
+// ── result view ──
+function chip(n) {
+  const c = document.createElement("div");
+  c.className = "chip " + (isBoy(n) ? "boy" : "girl");
+  const a = avatarFor(n);
+  const av = document.createElement("div");
+  av.className = "av"; av.style.background = a.color; av.textContent = a.emoji;
+  const nm = document.createElement("div");
+  nm.className = "nm"; nm.textContent = n;
+  c.append(av, nm);
+  return c;
+}
+function refreshStatus() {
+  const n = groups.length;
+  $("status").textContent = doneSet.size === 0
+    ? n + (n === 1 ? " pair is ready." : " pairs are ready.") + " Tap a pair when it has finished."
+    : doneSet.size + " of " + n + " pairs done";
+}
+function buildPairGrid() {
+  const grid = $("pair-grid"); grid.innerHTML = "";
+  groups.forEach((grp, i) => {
+    const card = document.createElement("div");
+    card.className = "pair-card pending";
+    card.tabIndex = 0; card.setAttribute("role", "button");
+    const title = document.createElement("div");
+    title.className = "pair-title";
+    title.textContent = grp.length === 1 ? "Choose a partner" : "Pair " + (i + 1);
+    const chips = document.createElement("div");
+    chips.className = "pair-chips";
+    grp.forEach((n) => chips.appendChild(chip(n)));
+    if (grp.length === 1) {
+      const q = document.createElement("div");
+      q.className = "chip unknown"; q.innerHTML = '<div class="nm">?</div>';
+      chips.appendChild(q);
+    }
+    const badge = document.createElement("div");
+    badge.className = "done-badge"; badge.textContent = "✓ Done";
+    card.append(title, chips, badge);
+    const toggle = () => {
+      if (card.classList.contains("pending")) return;
+      const now = !card.classList.contains("done");
+      card.classList.toggle("done", now);
+      if (now) doneSet.add(i); else doneSet.delete(i);
+      if (now && !muted) pluck(784, 0, 0.03, 0.4);
+      if (!revealTimer) refreshStatus();
+    };
+    card.addEventListener("click", toggle);
+    card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+    grid.appendChild(card);
+  });
+}
+function finishReveal(withSound) {
+  clearTimeout(revealTimer); revealTimer = null;
+  document.querySelectorAll(".pair-card.pending").forEach((c) => { c.classList.remove("pending"); c.classList.add("shown"); });
+  refreshStatus();
+  $("btn-skip").hidden = true;
+  if (withSound) playFinish();
+}
+function startReveal() {
+  const cards = [...document.querySelectorAll(".pair-card")];
+  $("btn-skip").hidden = reduceMotion;
+  if (reduceMotion) { finishReveal(false); return; }
+  $("status").textContent = "Making pairs…";
+  let i = 0;
+  const step = () => {
+    if (i >= cards.length) { finishReveal(true); return; }
+    cards[i].classList.remove("pending"); cards[i].classList.add("shown");
+    playRevealNote(); i++;
+    revealTimer = setTimeout(step, REVEAL_MS);
+  };
+  revealTimer = setTimeout(step, 500);
+}
+function generate() {
+  clearTimeout(revealTimer);
+  if (presentBoys().length + presentGirls().length < 2) return;
+  getCtx();
+  groups = generateGroups();
+  doneSet = new Set();
+  buildPairGrid();
+  showView("result");
+  startReveal();
+}
+$("btn-generate").onclick = generate;
+$("btn-again").onclick = generate;
+$("btn-skip").onclick = () => finishReveal(false);
+$("btn-edit").onclick = () => { clearTimeout(revealTimer); revealTimer = null; showView("setup"); };
+
+function syncSound() { $("btn-sound").textContent = muted ? "Sound off" : "Sound on"; $("btn-sound").setAttribute("aria-pressed", !muted); }
+$("btn-sound").onclick = () => { muted = !muted; safeSet("pm_muted", muted ? "1" : "0"); syncSound(); if (!muted) pluck(523.25, 0, 0.05, 0.6); };
+
+// ── init ──
+cfg = loadCfg();
+absent = loadAbsent();
+absent.forEach((n) => { if (n > cfg.total) absent.delete(n); });
+muted = safeGet("pm_muted") === "1";
+syncSound();
+renderComposition();
+renderGrid();
+</script>
+</body>
+</html>
