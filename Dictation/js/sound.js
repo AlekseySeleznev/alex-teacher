@@ -97,9 +97,11 @@ const Sound = (() => {
         for (const n of notes.slice(0, count)) {
             if (t >= TUNE_MAX_SECONDS) break;
             const dur = n.beats * secondsPerBeat;
-            const len = Math.max(0.25, dur * 0.95);
-            tone(n.freq, { at: t, dur: len, gain: 0.3, dest: bus });
-            tone(n.freq * 2, { at: t, dur: len * 0.5, gain: 0.045, dest: bus });   // music-box shimmer
+            if (!n.rest) {
+                const len = Math.max(0.18, dur * 0.95);
+                tone(n.freq, { at: t, dur: len, gain: 0.3, dest: bus });
+                tone(n.freq * 2, { at: t, dur: len * 0.5, gain: 0.045, dest: bus });   // music-box shimmer
+            }
             t += dur;
         }
         setTimeout(() => { if (tuneBus === bus) { tuneBus = null; bus.disconnect(); } }, (t + 0.6) * 1000);

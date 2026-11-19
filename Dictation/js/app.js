@@ -302,6 +302,7 @@ function initStudents() {
     group1 = Array.from({length: 15}, (_, i) => i + 1);      // Students 1-15
     group2 = Array.from({length: 18}, (_, i) => i + 16);     // Students 16-33
     studentForWord = {};
+    resetSpellSession();   // a new run through the words: the "Thai tune at least once" counter starts over
 }
 
 // Returns the current pool based on word index (odd words = group1, even words = group2)
@@ -637,7 +638,7 @@ function spellAnswer() {
         span.classList.remove('dim');
         span.classList.add('on');
 
-        const note = melody.parsed[noteNo % melody.parsed.length];
+        const note = melody.spell[noteNo % melody.spell.length];
         Sound.note(note.freq, note.steps);
 
         previous = span;
