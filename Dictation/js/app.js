@@ -32,6 +32,7 @@ let pencilsTimeout = null;
 let isRolling = false;
 let answerShown = false;
 let spellTimer = null;
+let finaleTimer = null;
 
 // Helper function to build the correct image path: a unit may name its own
 // folder (imageFolder), otherwise images/unit<N>/ (or images/final/)
@@ -587,43 +588,76 @@ function showAnswer() {
 
 // "Spell it": the letters light up one by one with a soft note so the class can spell aloud
 function cancelSpell() {
-    clearInterval(spellTimer);
+    clearTimeout(spellTimer);
     spellTimer = null;
-    document.querySelectorAll('#answer-display .letter').forEach((l) => l.classList.remove('dim', 'on'));
+    clearTimeout(finaleTimer);
+    finaleTimer = null;
+    Sound.stopTune();
+    const display = document.getElementById('answer-display');
+    display.classList.remove('finale');
+    display.querySelectorAll('.letter').forEach((l) => l.classList.remove('dim', 'on'));
 }
 
+// A random tune from the bank (js/melodies.js) plays while the letters light up:
+// one note per letter, a held note keeps its letter lit twice as long. The tune runs on
+// across the spaces, so a phrase like "do my homework" is one continuous melody.
+// At the end the opening of the tune is played once at its real tempo.
 function spellAnswer() {
     if (activeScreen !== 'screen-check-word') return;
     if (!answerShown) showAnswer();
     cancelSpell();
 
+    const melody = pickSpellMelody();
+    showToast('🎵 ' + melody.name);
+
     const spans = Array.from(document.querySelectorAll('#answer-display .letter'));
-    spans.forEach((l) => l.classList.add('dim'));
+    spans.forEach((l, i) => {
+        l.classList.add('dim');
+        l.style.setProperty('--i', i);
+    });
 
     let step = 0;
-    let letterNo = 0;
+    let noteNo = 0;
     let previous = null;
-    spellTimer = setInterval(() => {
+
+    const next = () => {
         if (previous) previous.classList.remove('on');
-        // Spaces between words appear at once, without a note;
-        // every new word starts the scale again from "do"
+        // Spaces between words appear at once; no note is used up and the tune does not restart
         while (step < spans.length && spans[step].classList.contains('space')) {
             spans[step].classList.remove('dim');
-            letterNo = 0;
             step++;
         }
         if (step >= spans.length) {
-            cancelSpell();
+            spans.forEach((l) => l.classList.remove('dim', 'on'));
+            spellTimer = setTimeout(() => playFinale(melody), 350);
             return;
         }
+
         const span = spans[step];
         span.classList.remove('dim');
         span.classList.add('on');
-        Sound.letter(letterNo);
+
+        const note = melody.parsed[noteNo % melody.parsed.length];
+        Sound.note(note.freq, note.steps);
+
         previous = span;
         step++;
-        letterNo++;
-    }, SPELL_STEP_MS);
+        noteNo++;
+        spellTimer = setTimeout(next, SPELL_STEP_MS * note.steps);
+    };
+    next();
+}
+
+// The word is complete: play the start of the tune at its real tempo (about 7 seconds at most)
+// while the letters do a small wave
+function playFinale(melody) {
+    spellTimer = null;
+    const seconds = Sound.playTune(melody.parsed, melody.bpm, melody.finale);
+    if (seconds > 0) {
+        const display = document.getElementById('answer-display');
+        display.classList.add('finale');
+        finaleTimer = setTimeout(() => display.classList.remove('finale'), seconds * 1000 + 300);
+    }
 }
 
 function prevCheckWord() {

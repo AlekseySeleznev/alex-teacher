@@ -269,6 +269,21 @@ input:focus-visible {
 .answer-text .letter.dim { opacity: 0.18; }
 .answer-text .letter.on { opacity: 1; transform: translateY(-6px) scale(1.12); color: var(--green-600); }
 
+/* While the finale tune plays the letters do a small wave, one after another */
+.answer-text.finale .letter {
+    animation: letter-wave 1.1s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+@keyframes letter-wave {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-9px); color: var(--green-600); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .answer-text.finale .letter { animation: none; }
+}
+
 .hidden { display: none !important; }
 
 .button-group {

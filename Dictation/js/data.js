@@ -57,7 +57,7 @@ const dictationData = {
         title: "After school activities",
         imageFolder: "after-school",
         words: [
-            "help my parents", "do my homework", "go swimming", "clean my room",
+            "help my parents", "do my homework", "go swimming", "clean up my room",
             "play with friends", "read a book", "have a music lesson",
             "visit my grandparents", "learn English", "play with my pet",
             "draw in my notebook"

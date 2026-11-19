@@ -49,7 +49,7 @@ const Sound = (() => {
         if (muted) return;
         const c = ensure();
         if (!c) return;
-        const { at = 0, dur = 0.4, gain = 0.25, type = 'sine', to = null } = opts;
+        const { at = 0, dur = 0.4, gain = 0.25, type = 'sine', to = null, dest = null } = opts;
         const t = c.currentTime + at;
 
         const osc = c.createOscillator();
@@ -63,16 +63,48 @@ const Sound = (() => {
         env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
         osc.connect(env);
-        env.connect(master);
+        env.connect(dest || master);
         osc.start(t);
         osc.stop(t + dur + 0.05);
     }
 
-    // "Spell it": C major scale starting at middle C (do re mi fa sol la si do ...).
-    // Semitones above C4 for the 7 degrees of one octave.
-    const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11];
-    const C4 = 261.63;
-    const SPELL_NOTES = 14;   // two octaves, then the scale starts again
+    // ---- the short tune played after "Spell it" ----
+    const TUNE_MAX_SECONDS = 9;   // safety cap, whatever the tune data says
+    let tuneBus = null;
+
+    function stopTune() {
+        if (!tuneBus || !ctx) return;
+        const bus = tuneBus;
+        tuneBus = null;
+        bus.gain.setTargetAtTime(0, ctx.currentTime, 0.03);   // quick fade-out, no click
+        setTimeout(() => bus.disconnect(), 400);
+    }
+
+    // notes: [{ freq, beats }], plays the first `count` notes at `bpm`.
+    // Returns the length in seconds (0 if nothing is played).
+    function playTune(notes, bpm, count) {
+        if (muted) return 0;
+        const c = ensure();
+        if (!c) return 0;
+        stopTune();
+
+        const bus = c.createGain();
+        bus.connect(master);
+        tuneBus = bus;
+
+        const secondsPerBeat = 60 / bpm;
+        let t = 0.05;
+        for (const n of notes.slice(0, count)) {
+            if (t >= TUNE_MAX_SECONDS) break;
+            const dur = n.beats * secondsPerBeat;
+            const len = Math.max(0.25, dur * 0.95);
+            tone(n.freq, { at: t, dur: len, gain: 0.3, dest: bus });
+            tone(n.freq * 2, { at: t, dur: len * 0.5, gain: 0.045, dest: bus });   // music-box shimmer
+            t += dur;
+        }
+        setTimeout(() => { if (tuneBus === bus) { tuneBus = null; bus.disconnect(); } }, (t + 0.6) * 1000);
+        return t;
+    }
 
     // ---- background: very quiet brown noise (like soft rain / wind) ----
     function ambientStart() {
@@ -174,11 +206,13 @@ const Sound = (() => {
             tone(880, { dur: 0.5, gain: 0.13 });
             tone(1318.5, { at: 0.08, dur: 0.6, gain: 0.08 });
         },
-        letter(i) {                                 // one note per spelled letter: do, re, mi, fa ...
-            const n = i % SPELL_NOTES;
-            const semitones = Math.floor(n / 7) * 12 + MAJOR_STEPS[n % 7];
-            tone(C4 * Math.pow(2, semitones / 12), { dur: 0.4, gain: 0.2 });
+        note(freq, steps = 1) {                     // one tune note per spelled letter
+            const dur = steps > 1 ? 0.95 : 0.5;
+            tone(freq, { dur, gain: 0.2 });
+            tone(freq * 2, { dur: dur * 0.6, gain: 0.03 });   // faint overtone, a bit like a music box
         },
+        playTune,
+        stopTune,
         finish() {                                  // end of the checking
             [261.63, 329.63, 392.0, 523.25].forEach((f, i) =>
                 tone(f, { at: i * 0.07, dur: 1.7, gain: 0.13 }));
