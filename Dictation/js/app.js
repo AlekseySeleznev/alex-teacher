@@ -33,9 +33,10 @@ let isRolling = false;
 let answerShown = false;
 let spellTimer = null;
 
-// Helper function to build the correct image path for standard units and final test
+// Helper function to build the correct image path: a unit may name its own
+// folder (imageFolder), otherwise images/unit<N>/ (or images/final/)
 function getImagePath(index) {
-    const folder = (unitId === 'final') ? 'final' : `unit${unitId}`;
+    const folder = currentUnit.imageFolder || ((unitId === 'final') ? 'final' : `unit${unitId}`);
     return `images/${folder}/${index + 1}.jpg`;
 }
 

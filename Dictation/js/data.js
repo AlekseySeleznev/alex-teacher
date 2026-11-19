@@ -53,6 +53,16 @@ const dictationData = {
         // Shown big instead of a picture until images/unit8/1..10.jpg exist
         emoji: ["⏰", "🥣", "🏫", "🏠", "🍽️", "🛏️", "🌅", "☀️", "🌇", "🌙"]
     },
+    "after-school": {
+        title: "After school activities",
+        imageFolder: "after-school",
+        words: [
+            "help my parents", "do my homework", "go swimming", "clean my room",
+            "play with friends", "read a book", "have a music lesson",
+            "visit my grandparents", "learn English", "play with my pet",
+            "draw in my notebook"
+        ]
+    },
     "final": {
         title: "Final Test Semester 1 preparation",
         words: [
